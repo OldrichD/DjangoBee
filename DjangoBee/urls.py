@@ -16,7 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from myapp import views
+from django.contrib.auth.decorators import login_required
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', views.index, name='index'),
+    path('login/', views.login_user, name='login_user'),
+    path('logout/', views.logout_user, name='logout_user'),
+    path('signup/', views.signup, name='signup'),
+    path('login_required_message/', views.login_required_message, name='login_required_message'),
+    path('overview/', login_required(views.overview), name='home'),
+    path('add_hives_place/', login_required(views.add_hives_place), name='add_hives_place'),
+
 ]

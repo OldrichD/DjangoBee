@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+</head>
+<body>
+<div>
+    <a href="{% url 'index' %}">BEE-NOTE.info</a>
+</div>
+
+{% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<h1>Přihlášený uživatel: {{ user.username }}</h1>
+
+<a href="{% url 'logout_user' %}">Odhlásit</a>
+
+{% block content %}
+{% endblock %}
+
+</body>
+</html>

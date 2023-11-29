@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<ul>
+  <li><a href="{% url 'login_user' %}">Přihlášení včelaře.</a></li>
+  <li><a href="{% url 'signup' %}">Registrace nového včelaře.</a></li>
+</ul>
+
+<h1>Včelaři vítej!</h1>
+<h2>Elektronický deník pro zápis a zobrazení dat o chovaných včelstev.</h2>
+
+{% endblock %}

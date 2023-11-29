@@ -1,0 +1,10 @@
+{% extends "home.html" %}
+
+{% block content %}
+
+<h2>Počet stanovišť: {{ hives_places_count }}</h2>
+<h2>Počet včelstev: {{ hives_count }}</h2>
+
+<a href="{% url 'add_hives_place' %}">Založit nové stanoviště.</a>
+
+{% endblock %}
