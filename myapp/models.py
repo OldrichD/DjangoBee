@@ -27,8 +27,10 @@ class Hives(models.Model):
     comment = models.TextField()
 
 
-class Mother(models.Model):
+class Mothers(models.Model):
     hive = models.ForeignKey(Hives, on_delete=models.SET_NULL, null=True)
+    ancestor = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
+    mark = models.CharField(max_length=255, unique=True)
     year = models.IntegerField()
     performance = models.CharField(max_length=255)
     male_line = models.CharField(max_length=255)
@@ -36,13 +38,28 @@ class Mother(models.Model):
     comment = models.TextField()
 
 
-class Visit(models.Model):
-    hive = models.ForeignKey(Hives, on_delete=models.CASCADE)
+class Tasks(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+
+class Visits(models.Model):
     date = models.DateField()
-    type = models.CharField(max_length=255)
-    treatment = models.CharField(max_length=255)
-    mite_drop = models.IntegerField()
+    inspection_type = models.CharField(max_length=255)
     condition = models.IntegerField()
-    honey_amount = models.FloatField()
-    zootechnical_act = models.CharField(max_length=255)
+    hive_body_size = models.CharField(max_length=255)
+    honey_supers_size = models.CharField(max_length=255)
+    honey_yield = models.FloatField()
+    medication_application = models.CharField(max_length=255)
+    disease = models.CharField(max_length=255)
+    mite_drop = models.IntegerField()
+    performed_tasks = models.ManyToManyField(Tasks, blank=True)
+
+    def __str__(self):
+        return f"{self.date}"
+
+
+
 

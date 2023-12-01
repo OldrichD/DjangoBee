@@ -11,7 +11,11 @@
 {% endif %}
 
 <ul>
-  <li><a href="{% url 'login_user' %}">Přihlášení včelaře.</a></li>
+  {% if request.user.is_authenticated %}
+    <li><a href="{% url 'overview' %}">Přihlášený uživatel: {{ user.username }} </a></li>
+  {% else %}
+      <li><a href="{% url 'login_user' %}">Přihlášení včelaře.</a></li>
+  {% endif %}
   <li><a href="{% url 'signup' %}">Registrace nového včelaře.</a></li>
 </ul>
 

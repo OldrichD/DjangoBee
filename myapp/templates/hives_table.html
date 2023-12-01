@@ -1,0 +1,31 @@
+<!-- hives_table.html -->
+{% load custom_filters %}
+
+<table>
+    <thead>
+        <tr>
+            <th>Číslo včelstva</th>
+            <th>Typ úlu</th>
+            <th>Velikost</th>
+            <th>Komentář</th>
+            <th>Matka</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for hive in hives %}
+            <tr>
+                <td>{{ hive.number }}</td>
+                <td>{{ hive.type }}</td>
+                <td>{{ hive.size }}</td>
+                <td>{{ hive.comment }}</td>
+
+                {# Přidání sloupce pro hodnotu 'mark' z tabulky 'Mother' #}
+                <td><a href="{% url 'mothers' mothers_dict|get_name:hive.id %}">{{hives_dict|get_name:hive.id }}</a></td>
+
+                {# Přidání sloupce s odkazem na URL 'visits' #}
+                <td><a href="{% url 'visits' hive.id %}">Zobrazit návštěvy</a></td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

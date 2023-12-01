@@ -1,0 +1,28 @@
+<!-- visits_table.html -->
+
+{% load custom_filters %}
+
+<table>
+    <thead>
+        <tr>
+            <th>Datum</th>
+            <th>Typ prohlídky</th>
+            <th>Provedené úkony</th>
+            <th>Kondice</th>
+            <th>Velikost plodiště</th>
+            <th>Velikost medníku</th>
+            <th>Medný výnos</th>
+            <th>Aplikace léčiva</th>
+            <th>Onemocnění</th>
+            <th>Spad</th>
+
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for hive in hives %}
+            <tr>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

@@ -1,0 +1,53 @@
+<!-- mothers_table.html -->
+{% load custom_filters %}
+
+<table>
+    <tbody>
+        <tr>
+            <td>Matka</td>
+            <td>{{ mother.mark }}</td>
+        </tr>
+        <tr>
+            <td>Rok</td>
+            <td>{{ mother.year }}</td>
+        </tr>
+        <tr>
+            <td>Stanoviště</td>
+            <td><a href="{% url 'hives_place' mother.hive.place.id %}">{{ mother.hive.place.name }}</a></td>
+        </tr>
+        <tr>
+            <td>Číslo úlu</td>
+            <td><a href="{% url 'visits' mother.hive.id %}">{{ mother.hive.number }}</td>
+        </tr>
+        <tr>
+            <td>Výkonnost</td>
+            <td>{{ mother.performance }}</td>
+        </tr>
+        <tr>
+            <td>Mateřská linie</td>
+            <td>{{ mother.female_line }}</td>
+        </tr>
+    </tbody>
+</table>
+
+Předci:
+<div>
+    {% for ancestor in ancestors %}
+    <a href="{% url 'mothers' ancestor.id %}">{{ ancestor.mark }}({{ ancestor.year }})</a>
+    {% endfor %}
+</div>
+
+
+Potomci:
+<div>
+    {% for descendant in descendants %}
+    <a href="{% url 'mothers' descendant.id %}">{{ descendant.mark }}({{ descendant.year }})</a>
+    {% endfor %}
+</div>
+
+Sestry:
+<div>
+    {% for sister in sisters %}
+    <a href="{% url 'mothers' sister.id %}">{{ sister.mark }}({{ sister.year }})</a>
+    {% endfor %}
+</div>

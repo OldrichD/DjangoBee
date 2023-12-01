@@ -17,7 +17,7 @@
   </ul>
 {% endif %}
 
-<h1>Přihlášený uživatel: {{ user.username }}</h1>
+<h1><a href="{% url 'overview' %}">Přihlášený uživatel: {{ user.username }} </a></h1>
 
 <a href="{% url 'logout_user' %}">Odhlásit</a>
 

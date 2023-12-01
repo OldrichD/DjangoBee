@@ -27,7 +27,11 @@ urlpatterns = [
     path('logout/', views.logout_user, name='logout_user'),
     path('signup/', views.signup, name='signup'),
     path('login_required_message/', views.login_required_message, name='login_required_message'),
-    path('overview/', login_required(views.overview), name='home'),
+    path('overview/', login_required(views.overview), name='overview'),
+    path('hives_place/<str:hives_place_id>/', login_required(views.hives_place), name='hives_place'),
     path('add_hives_place/', login_required(views.add_hives_place), name='add_hives_place'),
+    path('visits/<str:hive_id>/', login_required(views.visits), name='visits'),
+    path('mothers/<str:mother_id>/', login_required(views.mothers), name='mothers'),
+
 
 ]

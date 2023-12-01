@@ -1,0 +1,27 @@
+<!-- hives_places_table.html -->
+{% load custom_filters %}
+
+<table>
+    <thead>
+        <tr>
+            <th>Název</th>
+            <th>Včelstev</th>
+            <th>Typ</th>
+            <th>Lokace</th>
+            <th>Komentář</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for hives_place in hives_places %}
+            <tr>
+                <td>{{ hives_place.name }}</td>
+                <td>{{ hives_places_dict|get_name:hives_place.name }}</td>
+                <td>{{ hives_place.type }}</td>
+                <td>{{ hives_place.location }}</td>
+                <td>{{ hives_place.comment }}</td>
+                <td><a href="{% url 'hives_place' hives_place.id %}">Zobrazit</a></td>
+                </tr>
+        {% endfor %}
+    </tbody>
+</table>
