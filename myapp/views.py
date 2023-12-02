@@ -1,10 +1,10 @@
-from django.db.models import Count, Value
+from django.db.models import Count, Value, Max
 from django.db.models.functions import Coalesce
 from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from myapp.forms import LoginForm, RegisterForm, AddHivesPlace
+from myapp.forms import LoginForm, RegisterForm, AddHivesPlace, AddHive, AddMother
 from django.contrib.auth.decorators import login_required
 from myapp.models import Hives, HivesPlaces, Beekeepers, Visits, Mothers
 from django.contrib.auth.models import User
@@ -169,3 +169,63 @@ def add_hives_place(request):
         form = AddHivesPlace()
 
     return render(request, 'create_hives_place.html', {'form': form})
+
+
+@login_required
+def add_hive(request, hives_place_id=None):
+
+    try:
+        hives_place = get_object_or_404(HivesPlaces, id=hives_place_id)
+    except Http404:
+        messages.error(request, "Záznamy o stanovišti pro přihlášeného uživatele nejsou k dispozici.")
+        return redirect('overview')
+
+    # Kontrola, zda přihlášený uživatel odpovídá beekeeperovi v HivesPlaces
+    if request.user.id != hives_place.beekeeper.id:
+        messages.error(request, 'Nemáte oprávnění přidávat včelstvo na toto stanoviště.')
+        return redirect('overview')
+
+    if request.method == 'POST':
+        form = AddHive(request.POST)
+        if form.is_valid():
+            hive = form.save(commit=False)
+            # Získání maximální hodnoty sloupce 'number'
+            max_number = Hives.objects.filter(place_id=hives_place_id).aggregate(Max('number'))['number__max']
+            # Zvýšení hodnoty o 1
+            hive.number = max_number + 1 if max_number is not None else 1
+            hive.place_id = hives_place.id
+            hive.save()
+            messages.success(request, f'Bylo vytvořeno včelstvo č. {hive.number} '
+                                      f'na stanovišti {hives_place.name}')
+            return redirect('hives_place', hives_place_id)
+    else:
+        form = AddHive()
+
+    return render(request, 'create_hive.html', {'form': form})
+
+@login_required
+def add_mother(request, hive_id=None):
+
+    try:
+        selected_hive = get_object_or_404(Hives, id=hive_id)
+    except Http404:
+        messages.error(request, "Uživatel může přidávat matky pouze do svých včelstev.")
+        return redirect('overview')
+
+    if request.user.id != selected_hive.place.beekeeper.id:
+        messages.error(request, 'Nemáte oprávnění přidávat matku do požadovaného včelstva.')
+        return redirect('overview')
+
+    if request.method == 'POST':
+        form = AddMother(request.user, request.POST)
+        if form.is_valid():
+            mother = form.save(commit=False)
+            mother.save()
+            messages.success(request, f'Matka byla přidána do včelstva {selected_hive.number} '
+                                      f'na stanovišti {selected_hive.place.name}.'
+                                      f'Můžete do něj přidat matku.')
+            return redirect('add_mother', selected_hive.id)
+    else:
+        form = AddMother(request.user)
+
+    return render(request, 'create_mother.html', {'form': form})

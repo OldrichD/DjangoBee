@@ -28,10 +28,12 @@ urlpatterns = [
     path('signup/', views.signup, name='signup'),
     path('login_required_message/', views.login_required_message, name='login_required_message'),
     path('overview/', login_required(views.overview), name='overview'),
-    path('hives_place/<str:hives_place_id>/', login_required(views.hives_place), name='hives_place'),
+    path('hives_place/<int:hives_place_id>/', login_required(views.hives_place), name='hives_place'),
     path('add_hives_place/', login_required(views.add_hives_place), name='add_hives_place'),
+    path('add_hive/<str:hives_place_id>', login_required(views.add_hive), name='add_hive'),
     path('visits/<str:hive_id>/', login_required(views.visits), name='visits'),
     path('mothers/<str:mother_id>/', login_required(views.mothers), name='mothers'),
+    path('add_mother/<str:hive_id>/', login_required(views.add_mother), name='add_mother'),
 
 
 ]

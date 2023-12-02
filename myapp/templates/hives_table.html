@@ -1,6 +1,11 @@
 <!-- hives_table.html -->
 {% load custom_filters %}
 
+<div>
+    <a href="{% url 'add_hive' hives_place_id %}">Založit včelstvo</a>
+</div>
+
+
 <table>
     <thead>
         <tr>
@@ -21,7 +26,11 @@
                 <td>{{ hive.comment }}</td>
 
                 {# Přidání sloupce pro hodnotu 'mark' z tabulky 'Mother' #}
-                <td><a href="{% url 'mothers' mothers_dict|get_name:hive.id %}">{{hives_dict|get_name:hive.id }}</a></td>
+                {% if mothers_dict|get_name:hive.id is None %}
+                    <td><a href="{% url 'add_mother' hive.id %}">Přidat</a></td>
+                {% else %}
+                    <td><a href="{% url 'mothers' mothers_dict|get_name:hive.id %}">{{hives_dict|get_name:hive.id }}</a></td>
+                {% endif %}
 
                 {# Přidání sloupce s odkazem na URL 'visits' #}
                 <td><a href="{% url 'visits' hive.id %}">Zobrazit návštěvy</a></td>

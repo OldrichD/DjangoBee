@@ -1,10 +1,10 @@
-<!-- create_hives_place.html -->
+<!-- create_hive.html -->
 
 {% extends "home.html" %}
 
 {% block content %}
 
-  <h2>Založení stanoviště:</h2>
+  <h2>Přidání matky:</h2>
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}

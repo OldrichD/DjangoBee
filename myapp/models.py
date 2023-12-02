@@ -32,7 +32,6 @@ class Mothers(models.Model):
     ancestor = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
     mark = models.CharField(max_length=255, unique=True)
     year = models.IntegerField()
-    performance = models.CharField(max_length=255)
     male_line = models.CharField(max_length=255)
     female_line = models.CharField(max_length=255)
     comment = models.TextField()
