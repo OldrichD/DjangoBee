@@ -14,6 +14,7 @@
             <th>Velikost</th>
             <th>Komentář</th>
             <th>Matka</th>
+            <th>Poslední prohlídka</th>
             <th></th>
         </tr>
     </thead>
@@ -32,8 +33,8 @@
                     <td><a href="{% url 'mothers' mothers_dict|get_name:hive.id %}">{{hives_dict|get_name:hive.id }}</a></td>
                 {% endif %}
 
-                {# Přidání sloupce s odkazem na URL 'visits' #}
-                <td><a href="{% url 'visits' hive.id %}">Zobrazit návštěvy</a></td>
+                <td>{{ last_visits|get_name:hive.id|date:"d. m. Y" }}</td>
+                <td><a href="{% url 'visits' hive.id %}">Zobrazit prohlídky</a></td>
             </tr>
         {% endfor %}
     </tbody>

@@ -4,9 +4,9 @@ from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from myapp.forms import LoginForm, RegisterForm, AddHivesPlace, AddHive, AddMother
+from myapp.forms import LoginForm, RegisterForm, AddHivesPlace, AddHive, AddMother, AddVisit
 from django.contrib.auth.decorators import login_required
-from myapp.models import Hives, HivesPlaces, Beekeepers, Visits, Mothers
+from myapp.models import Hives, HivesPlaces, Beekeepers, Visits, Mothers, Tasks
 from django.contrib.auth.models import User
 
 
@@ -16,7 +16,7 @@ def index(request):
 
 def login_user(request):
     if request.user.is_authenticated:
-        # Uživatel je již přihlášen, takže přesměrujte na stránku overview
+        # Uživatel je již přihlášen, takže přesměruje na stránku overview
         return redirect('overview')
 
     if request.method == 'POST':
@@ -77,12 +77,21 @@ def overview(request):
     )
     hives_places_dict = {item['name']: item['hives_count'] for item in hives_places_dict}
 
+    last_visits = (
+        Visits.objects
+        .filter(hive__place__beekeeper=request.user)
+        .values('hive__place__name')
+        .annotate(last_visit=Max('date'))
+    )
+    last_visits = {item['hive__place__name']: item['last_visit'] for item in last_visits}
+
     return render(request, 'overview.html', {
-        'hives_places_count': hives_places_count,
-        'hives_count': hives_count,
-        'hives_places': hives_places,
-        'hives_places_dict': hives_places_dict
-    })
+            'hives_places_count': hives_places_count,
+            'hives_count': hives_count,
+            'hives_places': hives_places,
+            'hives_places_dict': hives_places_dict,
+            'last_visits': last_visits
+        })
 
 
 @login_required
@@ -90,8 +99,15 @@ def hives_place(request, hives_place_id=None):
     try:
         user_hives_place = get_object_or_404(HivesPlaces, id=hives_place_id, beekeeper=request.user)
         hives = Hives.objects.filter(place=user_hives_place)
+        last_visits = (
+            Visits.objects
+            .filter(hive__place__beekeeper=request.user, hive__place=hives_place_id)
+            .values('hive__id')
+            .annotate(last_visit=Max('date'))
+        )
+        last_visits = {item['hive__id']: item['last_visit'] for item in last_visits}
 
-        # Vytvoření slovníku pro předání do šablony
+
         hives_dict = {}
         mothers_dict = {}
         for hive in hives:
@@ -112,6 +128,7 @@ def hives_place(request, hives_place_id=None):
             'hives_dict': hives_dict,
             'mothers_dict': mothers_dict,
             'hives_place_id': hives_place_id,
+            'last_visits': last_visits
         })
     except Http404:
         messages.error(request, "Záznamy o včelstvu pro přihlášeného uživatele nejsou k dispozici.")
@@ -120,10 +137,20 @@ def hives_place(request, hives_place_id=None):
 
 @login_required
 def visits(request, hive_id=None):
-    return render(request, 'overview.html', {
-        'overview_spec': 'visits',
-        'hive_id': hive_id,
-    })
+    try:
+        user_hive = get_object_or_404(Hives, id=hive_id, place__beekeeper=request.user)
+        user_visits = Visits.objects.filter(hive=user_hive)
+        user_hive.mother = Mothers.objects.filter(hive=user_hive)
+
+        return render(request, 'overview.html', {
+            'overview_spec': 'visits',
+            'hive_id': hive_id,
+            'user_hive': user_hive,
+            'user_visits': user_visits
+        })
+    except Http404:
+        messages.error(request, "Záznamy o včelstvu pro přihlášeného uživatele nejsou k dispozici.")
+        return redirect('overview')
 
 
 @login_required
@@ -140,7 +167,7 @@ def mothers(request, mother_id=None):
         current_ancestor = current_ancestor.ancestor
 
     descendants = Mothers.objects.filter(ancestor=mother_id)
-    sisters = Mothers.objects.filter(ancestor=mother.ancestor).exclude(id=mother.id)
+    sisters = Mothers.objects.filter(ancestor=mother.ancestor, ancestor__isnull=False).exclude(id=mother.id)
 
     return render(request, 'overview.html', {
         'overview_spec': 'mothers',
@@ -173,7 +200,6 @@ def add_hives_place(request):
 
 @login_required
 def add_hive(request, hives_place_id=None):
-
     try:
         hives_place = get_object_or_404(HivesPlaces, id=hives_place_id)
     except Http404:
@@ -203,9 +229,9 @@ def add_hive(request, hives_place_id=None):
 
     return render(request, 'create_hive.html', {'form': form})
 
+
 @login_required
 def add_mother(request, hive_id=None):
-
     try:
         selected_hive = get_object_or_404(Hives, id=hive_id)
     except Http404:
@@ -220,12 +246,47 @@ def add_mother(request, hive_id=None):
         form = AddMother(request.user, request.POST)
         if form.is_valid():
             mother = form.save(commit=False)
+            mother.hive = selected_hive
             mother.save()
             messages.success(request, f'Matka byla přidána do včelstva {selected_hive.number} '
-                                      f'na stanovišti {selected_hive.place.name}.'
-                                      f'Můžete do něj přidat matku.')
-            return redirect('add_mother', selected_hive.id)
+                                      f'na stanovišti {selected_hive.place.name} .'
+                             )
+            return redirect('hives_place', selected_hive.place.id)
     else:
         form = AddMother(request.user)
 
     return render(request, 'create_mother.html', {'form': form})
+
+
+@login_required
+def add_visit(request, hive_id=None):
+    try:
+        user_hive = get_object_or_404(Hives, id=hive_id, place__beekeeper=request.user)
+        user_hive.mother = Mothers.objects.filter(hive=user_hive)
+
+    except Http404:
+        messages.error(request, "Záznamy o vybraném včelstvu nejsou k dispozici.")
+        return redirect('overview')
+
+    if request.user.id != user_hive.place.beekeeper.id:
+        messages.error(request, "Uživatel může zapisovat prohlídky pouze u svých včelstev.")
+        return redirect('overview')
+
+    if request.method == 'POST':
+        form = AddVisit(request.POST)
+        if form.is_valid():
+            visit = form.save(commit=False)
+            visit.hive_id = user_hive.id
+            visit.save()
+            visit.performed_tasks.add(*form.cleaned_data['performed_tasks'])
+            messages.success(request, f'U včelstva {user_hive.number} '
+                                      f'na stanovišti {user_hive.place.name} '
+                                      f'byla zapsána prohlídka.')
+            return redirect('visits', user_hive.id)
+    else:
+        form = AddVisit()
+
+    return render(request, 'create_visit.html', {
+        'form': form,
+        'user_hive': user_hive
+    })

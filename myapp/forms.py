@@ -1,6 +1,7 @@
 from django import forms
+from django.utils import timezone
 from django.contrib.auth.forms import UserCreationForm
-from myapp.models import Beekeepers, HivesPlaces, Hives, Mothers
+from myapp.models import Beekeepers, HivesPlaces, Hives, Mothers, Visits, Tasks
 
 
 class LoginForm(forms.Form):
@@ -36,4 +37,26 @@ class AddMother(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
         super(AddMother, self).__init__(*args, **kwargs)
         # Omezit hodnoty pro 'ancestor' pouze na záznamy z tabulky Mothers, které jsou propojené s přihlášeným uživatelem
-        self.fields['ancestor'].queryset = Mothers.objects.filter(hive__place__beekeeper__username=user.username)
+        mothers_queryset = Mothers.objects.filter(hive__place__beekeeper__username=user.username)
+        self.fields['ancestor'].queryset = mothers_queryset
+        self.fields['ancestor'].to_field_name = 'mark'
+
+
+class AddVisit(forms.ModelForm):
+    date = forms.CharField(initial=timezone.now().strftime('%d. %m. %Y'))
+    performed_tasks = forms.ModelMultipleChoiceField(
+        queryset=Tasks.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    class Meta:
+        model = Visits
+        fields = ['date', 'inspection_type', 'condition', 'hive_body_size',
+                  'honey_supers_size', 'honey_yield', 'medication_application',
+                  'disease', 'mite_drop', 'performed_tasks']
+
+    def clean_date(self):
+        raw_date = self.cleaned_data['date']
+        formatted_date = timezone.datetime.strptime(raw_date, '%d. %m. %Y').strftime('%Y-%m-%d')
+        return formatted_date
+

@@ -17,6 +17,15 @@ class HivesPlaces(models.Model):
     type = models.CharField(max_length=255)
     location = models.CharField(max_length=255)
     comment = models.TextField()
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['beekeeper', 'name'],
+                name='unique_beekeeper_place_name'
+            )
+        ]
 
 
 class Hives(models.Model):
@@ -25,6 +34,15 @@ class Hives(models.Model):
     type = models.CharField(max_length=255)
     size = models.IntegerField()
     comment = models.TextField()
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['place', 'number'],
+                name='unique_place_hive_number'
+            )
+        ]
 
 
 class Mothers(models.Model):
@@ -35,6 +53,10 @@ class Mothers(models.Model):
     male_line = models.CharField(max_length=255)
     female_line = models.CharField(max_length=255)
     comment = models.TextField()
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.mark
 
 
 class Tasks(models.Model):
@@ -45,6 +67,7 @@ class Tasks(models.Model):
 
 
 class Visits(models.Model):
+    hive = models.ForeignKey(Hives, on_delete=models.SET_NULL, null=True)
     date = models.DateField()
     inspection_type = models.CharField(max_length=255)
     condition = models.IntegerField()
@@ -55,6 +78,7 @@ class Visits(models.Model):
     disease = models.CharField(max_length=255)
     mite_drop = models.IntegerField()
     performed_tasks = models.ManyToManyField(Tasks, blank=True)
+    active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.date}"

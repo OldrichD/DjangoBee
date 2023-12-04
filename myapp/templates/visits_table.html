@@ -3,6 +3,35 @@
 {% load custom_filters %}
 
 <table>
+    <tbody>
+        <tr>
+            <td>Včelstvo č.:</td>
+            <td>{{ user_hive.number }}</td>
+        </tr>
+        <tr>
+            <td>Stanoviště:</td>
+            <td><a href="{% url 'hives_place' user_hive.place.id %}">{{ user_hive.place.name }}</td>
+        </tr>
+        <tr>
+            <td>Matka:</td>
+            {% with mother=user_hive.mother.first %}
+        <td>
+            {% if mother %}
+                <a href="{% url 'mothers' mother.id %}">{{ mother.mark }} ({{ mother.year }})</a>
+            {% else %}
+                <td><a href="{% url 'add_mother' user_hive.id %}">Přidat matku</a></td>
+            {% endif %}
+        </td>
+    {% endwith %}
+        </tr>
+    </tbody>
+</table>
+
+<div>
+    <a href="{% url 'add_visit' user_hive.id %}">Zapsat prohlídku</a>
+</div>
+
+<table>
     <thead>
         <tr>
             <th>Datum</th>
@@ -15,13 +44,27 @@
             <th>Aplikace léčiva</th>
             <th>Onemocnění</th>
             <th>Spad</th>
-
             <th></th>
         </tr>
     </thead>
     <tbody>
-        {% for hive in hives %}
+        {% for visit in user_visits %}
             <tr>
+                <td>{{ visit.date|date:"d. m. Y" }}</td>
+                <td>{{ visit.inspection_type}}</td>
+                <td>
+                     {% for task in visit.performed_tasks.all %}
+                        <p>{{ task.name }}</p>
+                    {% endfor %}
+                </td>
+                <td>{{ visit.condition}}</td>
+                <td>{{ visit.hive_body_size}}</td>
+                <td>{{ visit.honey_supers_size}}</td>
+                <td>{{ visit.honey_yield}}</td>
+                <td>{{ visit.medication_application}}</td>
+                <td>{{ visit.disease}}</td>
+                <td>{{ visit.mite_drop}}</td>
+                <td></td>
             </tr>
         {% endfor %}
     </tbody>

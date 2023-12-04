@@ -9,6 +9,7 @@
             <th>Typ</th>
             <th>Lokace</th>
             <th>Komentář</th>
+            <th>Poslední prohlídka</th>
             <th></th>
         </tr>
     </thead>
@@ -20,6 +21,7 @@
                 <td>{{ hives_place.type }}</td>
                 <td>{{ hives_place.location }}</td>
                 <td>{{ hives_place.comment }}</td>
+                <td>{{ last_visits|get_name:hives_place.name|date:"d. m. Y" }}</td>
                 <td><a href="{% url 'hives_place' hives_place.id %}">Zobrazit</a></td>
                 </tr>
         {% endfor %}
