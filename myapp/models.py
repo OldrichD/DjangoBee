@@ -47,6 +47,8 @@ class Hives(models.Model):
             )
         ]
 
+    def __str__(self):
+        return str(self.number)
 
 class Mothers(models.Model):
     hive = models.ForeignKey(Hives, on_delete=models.SET_NULL, null=True, related_name='mothers')

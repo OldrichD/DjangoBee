@@ -1,3 +1,4 @@
+from django.contrib.auth import logout
 from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -142,6 +143,7 @@ def hives_place(request, hives_place_id=None):
         messages.error(request, "Záznamy o včelstvu pro přihlášeného uživatele nejsou k dispozici.")
         return redirect('overview')
 
+
 @login_required
 def visits(request, hive_id=None):
     try:
@@ -184,6 +186,18 @@ def mothers(request, mother_id=None):
     except Http404:
         messages.error(request, "Záznamy o matce pro přihlášeného uživatele nejsou k dispozici.")
         return redirect('overview')
+
+
+@login_required
+def erase_mother(request, mother_id=None):
+    try:
+        mother = get_object_or_404(Mothers, id=mother_id, hive__place__beekeeper=request.user, active=False)
+        mother.delete()
+        messages.success(request, f'Záznamy o matce {mother.mark}({mother.year}) byly úspěšně odstraněny.')
+
+    except Http404:
+        messages.error(request, "Záznamy o matce pro přihlášeného uživatele nejsou k dispozici.")
+    return redirect('overview')
 
 @login_required
 def add_hives_place(request):
@@ -357,7 +371,7 @@ def move_hive(request, old_hives_place):
         old_hives_place = HivesPlaces.objects.filter(id=old_hives_place).first()
 
         if request.method == 'POST':
-            form = ChangeHivesPlace(user, request.POST)
+            form = ChangeHivesPlace(user=request.user, hives_place_id=old_hives_place.id, data=request.POST)
             if form.is_valid():
                 selected_hive_ids = form.cleaned_data['selected_hives']
                 new_hives_place = form.cleaned_data['new_hives_place']
@@ -368,18 +382,22 @@ def move_hive(request, old_hives_place):
                     messages.error(request, f"Vybraná včelstva nebo nové stanoviště nepatří přihlášenému uživateli.")
                     return redirect('overview')
 
+                new_numbers = []
                 with transaction.atomic():
                     for selected_hive_id in selected_hive_ids:
                         selected_hive = Hives.objects.get(id=selected_hive_id.id)
                         selected_hive.place = new_hives_place
                         new_hive += 1
+                        new_numbers.append(new_hive)
                         selected_hive.number = new_hive
                         selected_hive.save()
 
-                    messages.success(request, f'Včelstva ({selected_hive_ids.count()}'
+                    messages.success(request, f'Včelstva ({", ".join(map(str, selected_hive_ids))}'
                                               f') byla přemístěna ze stanoviště {old_hives_place.name}'
-                                              f' na stanoviště {new_hives_place.name}.')
-                    return redirect('overview')
+                                              f' na stanoviště {new_hives_place.name}'
+                                              f' a očíslována({", " .join(map(str, new_numbers))}).'
+                                     )
+                    return redirect('hives_place', new_hives_place.id)
             else:
                 messages.error(request, 'Formulář není platný. Opravte prosím chyby ve formuláři.')
         else:

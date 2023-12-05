@@ -69,7 +69,7 @@ class AddVisit(forms.ModelForm):
 
 
 class ChangeHivesPlace(forms.Form):
-    old_hives_place = forms.IntegerField(widget=forms.HiddenInput(), required=False)
+    old_hives_place = forms.CharField(widget=forms.HiddenInput(), required=False)
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
@@ -86,3 +86,4 @@ class ChangeHivesPlace(forms.Form):
             queryset=HivesPlaces.objects.filter(beekeeper=user, active=True).exclude(id=hives_place_id),
             label='Vyberte nové stanoviště',
         )
+

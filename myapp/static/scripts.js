@@ -4,3 +4,7 @@ function confirmDelete(count) {
     }
     return true;
 }
+
+function confirmErase(count) {
+    return confirm("Úplné odstranění záznamů o zrušené mace může mít vliv na sledování rodokmenů.");
+}

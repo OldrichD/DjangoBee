@@ -5,6 +5,7 @@
     <a href="{% url 'add_hive' hives_place_id %}">Založit včelstvo</a>
 </div>
 <form method="post" action="{% url 'move_hive' hives_place_id %}">
+    <input type="hidden" name="old_hives_place" value="{{ hives_place_id }}">
     {% csrf_token %}
     <table>
         <thead>
@@ -25,7 +26,6 @@
                 <tr>
                     <td>
                         <input type="checkbox" name="selected_hives" value="{{ hive.id }}">
-                        <input type="hidden" name="old_hives_place" value="{{ hives_place_id }}">
                         {{ current_hives_place }}
                     </td>
                     <td>{{ hive.number }}</td>
@@ -47,7 +47,7 @@
             {% endfor %}
         </tbody>
     </table>
-    <label for="id_new_hive_place">Vyberte nové stanoviště:</label>
-    {{ form.new_hives_place }}
+    <label for="new_hives_place">Vyberte nové stanoviště:{{ form.new_hives_place }}</label>
+
     <button type="submit">Přemístit vybraná včelstva</button>
 </form>

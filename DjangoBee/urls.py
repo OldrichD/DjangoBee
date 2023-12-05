@@ -35,6 +35,7 @@ urlpatterns = [
     path('add_visit/<str:hive_id>/', login_required(views.add_visit), name='add_visit'),
     path('mothers/<str:mother_id>/', login_required(views.mothers), name='mothers'),
     path('add_mother/<str:hive_id>/', login_required(views.add_mother), name='add_mother'),
+    path('erase_mother/<str:mother_id>/', login_required(views.erase_mother), name='erase_mother'),
     path('remove_hives_place/<str:hives_place_id>/', login_required(views.remove_hives_place), name='remove_hives_place'),
     path('remove_hive/<str:hive_id>/', login_required(views.remove_hive), name='remove_hive'),
     path('move_hive/<str:old_hives_place>/', login_required(views.move_hive), name='move_hive')

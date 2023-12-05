@@ -1,13 +1,18 @@
 <!-- mothers_table.html -->
 {% load custom_filters %}
-
+{% if mother.active == False %}
+    <div><a href="{% url 'erase_mother' mother.id %}"
+        onclick="return confirmErase()">
+        Odstranit záznamy o zrušené matce.
+    </a></div>
+{% endif %}
 <table>
     <tbody>
         <tr>
             <td>Matka</td>
             <td>
                 {{ mother.mark }}
-                {% if mother.active == False%}
+                {% if mother.active == False %}
                     (zrušená)
                 {% endif %}
             </td>
@@ -21,7 +26,7 @@
             {% if mother.hive.place.active == True %}
                 <td><a href="{% url 'hives_place' mother.hive.place.id %}">{{ mother.hive.place.name }}</a></td>
             {% else %}
-                <td>{{ mother.hive.place.name }} (Zrušené)</td>
+                <td>{{ mother.hive.place.name }} (zrušené)</td>
             {% endif %}
         </tr>
         <tr>
