@@ -4,38 +4,50 @@
 <div>
     <a href="{% url 'add_hive' hives_place_id %}">Založit včelstvo</a>
 </div>
-
-
-<table>
-    <thead>
-        <tr>
-            <th>Číslo včelstva</th>
-            <th>Typ úlu</th>
-            <th>Velikost</th>
-            <th>Komentář</th>
-            <th>Matka</th>
-            <th>Poslední prohlídka</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for hive in hives %}
+<form method="post" action="{% url 'move_hive' hives_place_id %}">
+    {% csrf_token %}
+    <table>
+        <thead>
             <tr>
-                <td>{{ hive.number }}</td>
-                <td>{{ hive.type }}</td>
-                <td>{{ hive.size }}</td>
-                <td>{{ hive.comment }}</td>
-
-                {# Přidání sloupce pro hodnotu 'mark' z tabulky 'Mother' #}
-                {% if mothers_dict|get_name:hive.id is None %}
-                    <td><a href="{% url 'add_mother' hive.id %}">Přidat</a></td>
-                {% else %}
-                    <td><a href="{% url 'mothers' mothers_dict|get_name:hive.id %}">{{hives_dict|get_name:hive.id }}</a></td>
-                {% endif %}
-
-                <td>{{ last_visits|get_name:hive.id|date:"d. m. Y" }}</td>
-                <td><a href="{% url 'visits' hive.id %}">Zobrazit prohlídky</a></td>
+                <th></th>
+                <th>Číslo včelstva</th>
+                <th>Typ úlu</th>
+                <th>Velikost</th>
+                <th>Komentář</th>
+                <th>Matka</th>
+                <th>Poslední prohlídka</th>
+                <th></th>
+                <th></th>
             </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            {% for hive in hives %}
+                <tr>
+                    <td>
+                        <input type="checkbox" name="selected_hives" value="{{ hive.id }}">
+                        <input type="hidden" name="old_hives_place" value="{{ hives_place_id }}">
+                        {{ current_hives_place }}
+                    </td>
+                    <td>{{ hive.number }}</td>
+                    <td>{{ hive.type }}</td>
+                    <td>{{ hive.size }}</td>
+                    <td>{{ hive.comment }}</td>
+
+                    {# Přidání sloupce pro hodnotu 'mark' z tabulky 'Mother' #}
+                    {% if mothers_dict|get_name:hive.id is None %}
+                        <td><a href="{% url 'add_mother' hive.id %}">Přidat</a></td>
+                    {% else %}
+                        <td><a href="{% url 'mothers' mothers_dict|get_name:hive.id %}">{{hives_dict|get_name:hive.id }}</a></td>
+                    {% endif %}
+
+                    <td>{{ last_visits|get_name:hive.id|date:"d. m. Y" }}</td>
+                    <td><a href="{% url 'visits' hive.id %}">Zobrazit prohlídky</a></td>
+                    <td><a href="{% url 'remove_hive' hive.id %}">Zrušit včelstvo</a></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <label for="id_new_hive_place">Vyberte nové stanoviště:</label>
+    {{ form.new_hives_place }}
+    <button type="submit">Přemístit vybraná včelstva</button>
+</form>

@@ -5,7 +5,12 @@
     <tbody>
         <tr>
             <td>Matka</td>
-            <td>{{ mother.mark }}</td>
+            <td>
+                {{ mother.mark }}
+                {% if mother.active == False%}
+                    (zrušená)
+                {% endif %}
+            </td>
         </tr>
         <tr>
             <td>Rok</td>
@@ -13,11 +18,19 @@
         </tr>
         <tr>
             <td>Stanoviště</td>
-            <td><a href="{% url 'hives_place' mother.hive.place.id %}">{{ mother.hive.place.name }}</a></td>
+            {% if mother.hive.place.active == True %}
+                <td><a href="{% url 'hives_place' mother.hive.place.id %}">{{ mother.hive.place.name }}</a></td>
+            {% else %}
+                <td>{{ mother.hive.place.name }} (Zrušené)</td>
+            {% endif %}
         </tr>
         <tr>
             <td>Číslo úlu</td>
-            <td><a href="{% url 'visits' mother.hive.id %}">{{ mother.hive.number }}</td>
+            {% if mother.hive.active == True %}
+                <td><a href="{% url 'visits' mother.hive.id %}">{{ mother.hive.number }}</td>
+            {% else %}
+                <td>{{ mother.hive.number }} (Zrušené)</td>
+            {% endif %}
         </tr>
         <tr>
             <td>Výkonnost</td>

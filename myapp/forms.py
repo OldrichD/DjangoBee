@@ -22,6 +22,15 @@ class AddHivesPlace(forms.ModelForm):
         model = HivesPlaces
         fields = ['name', 'type', 'location', 'comment']
 
+    def clean_name(self):
+        beekeeper = self.cleaned_data.get('beekeeper')
+        name = self.cleaned_data.get('name')
+
+        # Kontrola, zda záznam s daným beekeeper_id a place_name již existuje
+        if HivesPlaces.objects.filter(beekeeper=beekeeper, name=name).exists():
+            raise forms.ValidationError("Záznam s tímto jménem již existuje pro daného včelaře.")
+
+        return name
 
 class AddHive(forms.ModelForm):
     class Meta:
@@ -39,8 +48,6 @@ class AddMother(forms.ModelForm):
         # Omezit hodnoty pro 'ancestor' pouze na záznamy z tabulky Mothers, které jsou propojené s přihlášeným uživatelem
         mothers_queryset = Mothers.objects.filter(hive__place__beekeeper__username=user.username)
         self.fields['ancestor'].queryset = mothers_queryset
-        self.fields['ancestor'].to_field_name = 'mark'
-
 
 class AddVisit(forms.ModelForm):
     date = forms.CharField(initial=timezone.now().strftime('%d. %m. %Y'))
@@ -60,3 +67,22 @@ class AddVisit(forms.ModelForm):
         formatted_date = timezone.datetime.strptime(raw_date, '%d. %m. %Y').strftime('%Y-%m-%d')
         return formatted_date
 
+
+class ChangeHivesPlace(forms.Form):
+    old_hives_place = forms.IntegerField(widget=forms.HiddenInput(), required=False)
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        hives_place_id = kwargs.pop('hives_place_id', None)
+        super(ChangeHivesPlace, self).__init__(*args, **kwargs)
+
+        self.fields['selected_hives'] = forms.ModelMultipleChoiceField(
+            queryset=Hives.objects.filter(place__beekeeper=user),
+            widget=forms.CheckboxSelectMultiple,
+            label='Vyberte včelstva'
+        )
+
+        self.fields['new_hives_place'] = forms.ModelChoiceField(
+            queryset=HivesPlaces.objects.filter(beekeeper=user, active=True).exclude(id=hives_place_id),
+            label='Vyberte nové stanoviště',
+        )

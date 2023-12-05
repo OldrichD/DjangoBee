@@ -19,6 +19,9 @@ class HivesPlaces(models.Model):
     comment = models.TextField()
     active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return self.name
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -29,7 +32,7 @@ class HivesPlaces(models.Model):
 
 
 class Hives(models.Model):
-    place = models.ForeignKey(HivesPlaces, on_delete=models.CASCADE)
+    place = models.ForeignKey(HivesPlaces, on_delete=models.CASCADE, related_name='hives')
     number = models.IntegerField()
     type = models.CharField(max_length=255)
     size = models.IntegerField()
@@ -46,7 +49,7 @@ class Hives(models.Model):
 
 
 class Mothers(models.Model):
-    hive = models.ForeignKey(Hives, on_delete=models.SET_NULL, null=True)
+    hive = models.ForeignKey(Hives, on_delete=models.SET_NULL, null=True, related_name='mothers')
     ancestor = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
     mark = models.CharField(max_length=255, unique=True)
     year = models.IntegerField()
@@ -67,7 +70,7 @@ class Tasks(models.Model):
 
 
 class Visits(models.Model):
-    hive = models.ForeignKey(Hives, on_delete=models.SET_NULL, null=True)
+    hive = models.ForeignKey(Hives, on_delete=models.SET_NULL, null=True, related_name='visits')
     date = models.DateField()
     inspection_type = models.CharField(max_length=255)
     condition = models.IntegerField()

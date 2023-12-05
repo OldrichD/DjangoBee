@@ -11,6 +11,7 @@
             <th>Komentář</th>
             <th>Poslední prohlídka</th>
             <th></th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -23,6 +24,10 @@
                 <td>{{ hives_place.comment }}</td>
                 <td>{{ last_visits|get_name:hives_place.name|date:"d. m. Y" }}</td>
                 <td><a href="{% url 'hives_place' hives_place.id %}">Zobrazit</a></td>
+                <td><a href="{% url 'remove_hives_place' hives_place.id %}"
+                        onclick="return confirmDelete({{ hives_places_dict|get_name:hives_place.name }})">
+                        Smazat
+                </a></td>
                 </tr>
         {% endfor %}
     </tbody>
