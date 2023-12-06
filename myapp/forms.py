@@ -106,7 +106,10 @@ class ChangeMotherHive(forms.Form):
 
         # Předání parametru 'user' do konstruktoru pole 'new_hive'
         self.fields['new_hive'] = forms.ModelChoiceField(
-            queryset=Hives.objects.filter(active=True),
+            queryset=Hives.objects.filter(
+                Q(mothers__isnull=True) | Q(mothers__active=False),
+                place__beekeeper=user,
+                active=True),
             label='Vyberte nové včelstvo:',
             widget=CustomHiveWidget()
         )

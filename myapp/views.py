@@ -234,8 +234,6 @@ def move_mother(request, mother_id=None):
         user = request.user
         mother = Mothers.objects.get(hive__place__beekeeper=user, active=True, id=mother_id)
 
-        form = ChangeMotherHive(user=user, mother=mother)
-
         if request.method == 'POST':
             form = ChangeMotherHive(data=request.POST, user=user, mother=mother)
             if form.is_valid():
@@ -248,15 +246,14 @@ def move_mother(request, mother_id=None):
                         old_hive.mother = None
                         old_hive.save()
 
-                    mother.hive_id = new_hive.id
-                    mother.save()
+                        mother.hive_id = new_hive.id
+                        mother.save()
 
-                    messages.success(request, f"Matka {mother.mark} byla úspěšně přemístěna do včelstva č."
+                        messages.success(request, f"Matka {mother.mark} byla úspěšně přemístěna do včelstva č."
                                               f"{new_hive.number} na stanovišti {new_hive.place.name}.")
                     return redirect('hives_place', new_hive.place_id)
             else:
                 messages.error(request, form.errors)
-                messages.error(request, request.POST)
     except Exception as e:
         messages.error(request, f'Chyba při přemisťování matky: {e}')
 
