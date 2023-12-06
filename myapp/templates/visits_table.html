@@ -75,7 +75,9 @@
                 <td>{{ visit.medication_application}}</td>
                 <td>{{ visit.disease}}</td>
                 <td>{{ visit.mite_drop}}</td>
-                <td></td>
+                <td>
+                    <a href="{% url 'remove_visit' visit.id %}">Smazat prohlídku</a>
+                </td>
             </tr>
         {% endfor %}
     </tbody>
