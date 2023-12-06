@@ -16,7 +16,9 @@
                 <th>Velikost</th>
                 <th>Komentář</th>
                 <th>Matka</th>
+                <th></th>
                 <th>Poslední prohlídka</th>
+                <th></th>
                 <th></th>
                 <th></th>
             </tr>
@@ -35,14 +37,23 @@
 
                     {# Přidání sloupce pro hodnotu 'mark' z tabulky 'Mother' #}
                     {% if mothers_dict|get_name:hive.id is None %}
-                        <td><a href="{% url 'add_mother' hive.id %}">Přidat</a></td>
+                        <td>Bet matky</td>
+                        <td><a href="{% url 'add_mother' hive.id %}">Přidat matku</a></td>
                     {% else %}
-                        <td><a href="{% url 'mothers' mothers_dict|get_name:hive.id %}">{{hives_dict|get_name:hive.id }}</a></td>
+                        <td><a href="{% url 'mothers' mothers_dict|get_name:hive.id %}">
+                            {{hives_dict|get_name:hive.id }}({{years_dict|get_name:hive.id }})
+                        </a></td>
+                        <td><a href="{% url 'remove_mother' mothers_dict|get_name:hive.id %}"
+                            onclick="return confirmDelete(1, 'Zrušená matka již nebude dostupná. Pokud ji chcete dále používat, přemístěte ji do jiného včelstva.')">
+                            Zrušit matku
+                        </a></td>
                     {% endif %}
-
                     <td>{{ last_visits|get_name:hive.id|date:"d. m. Y" }}</td>
+                    <td><a href="{% url 'add_visit' hive.id %}">Zapsat prohlídku</a></td>
                     <td><a href="{% url 'visits' hive.id %}">Zobrazit prohlídky</a></td>
-                    <td><a href="{% url 'remove_hive' hive.id %}">Zrušit včelstvo</a></td>
+                    <td><a href="{% url 'remove_hive' hive.id %}" onclick="return confirmDelete(1,'Včelstvo bude zrušeno včetně matky, která poté nebude dostupná. Pokud ji chcete dále používat, nejprve ji přemístěte do volného včelstva.')">
+                        Zrušit včelstvo
+                    </a></td>
                 </tr>
             {% endfor %}
         </tbody>

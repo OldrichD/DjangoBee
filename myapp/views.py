@@ -1,13 +1,14 @@
-from django.contrib.auth import logout
+from django.contrib.auth import login, logout, authenticate
 from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Count, Value, Max, Q
+from django.db.models import Count, Value, Max
+from django.db.models.query_utils import Q
 from django.db.models.functions import Coalesce
 from myapp.forms import (
-    LoginForm, RegisterForm, AddHivesPlace, AddHive, AddMother, AddVisit, ChangeHivesPlace
+    LoginForm, RegisterForm, AddHivesPlace, AddHive, AddMother, AddVisit, ChangeHivesPlace, ChangeMotherHive
 )
 from myapp.models import Hives, HivesPlaces, Beekeepers, Visits, Mothers, Tasks
 
@@ -89,12 +90,15 @@ def overview(request):
     )
     last_visits = {item['hive__place__name']: item['last_visit'] for item in last_visits}
 
+    warning="Chystáte se odstranit stanoviště i se včelstvy. Pokud chcete včelstva zachovat, nejprve je přemístěte na jiné stanoviště."
+
     return render(request, 'overview.html', {
         'hives_places_count': hives_places_count,
         'hives_count': hives_count,
         'hives_places': hives_places,
         'hives_places_dict': hives_places_dict,
-        'last_visits': last_visits
+        'last_visits': last_visits,
+        'warning': warning
     })
 
 
@@ -116,6 +120,7 @@ def hives_place(request, hives_place_id=None):
 
         hives_dict = {}
         mothers_dict = {}
+        years_dict = {}
         for hive in hives:
             # Získání matky pro aktivní včelstvo
             mother = (
@@ -126,6 +131,7 @@ def hives_place(request, hives_place_id=None):
             if mother:
                 hives_dict[hive.id] = mother.mark
                 mothers_dict[hive.id] = mother.id
+                years_dict[hive.id] = mother.year
             else:
                 hives_dict[hive.id] = None
 
@@ -135,6 +141,7 @@ def hives_place(request, hives_place_id=None):
             'hives': hives,
             'hives_dict': hives_dict,
             'mothers_dict': mothers_dict,
+            'years_dict': years_dict,
             'hives_place_id': hives_place_id,
             'last_visits': last_visits,
             'form': form
@@ -175,17 +182,38 @@ def mothers(request, mother_id=None):
         descendants = Mothers.objects.filter(ancestor=mother_id)
         sisters = Mothers.objects.filter(ancestor=mother.ancestor, ancestor__isnull=False).exclude(id=mother.id)
 
+        form = ChangeMotherHive(user=request.user, mother=mother)
+        print(form.fields['new_hive'].queryset)
+
         return render(request, 'overview.html', {
             'overview_spec': 'mothers',
             'mother': mother,
             'ancestors': ancestors,
             'descendants': descendants,
             'sisters': sisters,
+            'form': form
     })
 
     except Http404:
         messages.error(request, "Záznamy o matce pro přihlášeného uživatele nejsou k dispozici.")
         return redirect('overview')
+
+
+@login_required
+def remove_mother(request, mother_id=None):
+    try:
+        mother = get_object_or_404(Mothers, hive__place__beekeeper=request.user, id=mother_id, active=True)
+    except Http404:
+        messages.error(request, "Úprava záznamů o matce pro přihlášeného uživatele není možná.")
+        return redirect('overview')
+
+    with transaction.atomic():
+        # Deaktivace matky
+        mother.active = False
+        mother.save()
+
+        messages.success(request, f'Matka {mother.mark} na stanovišti {mother.hive.place.name} byla zrušena.')
+    return redirect('hives_place', mother.hive.place_id)
 
 
 @login_required
@@ -198,6 +226,42 @@ def erase_mother(request, mother_id=None):
     except Http404:
         messages.error(request, "Záznamy o matce pro přihlášeného uživatele nejsou k dispozici.")
     return redirect('overview')
+
+
+@login_required
+def move_mother(request, mother_id=None):
+    try:
+        user = request.user
+        mother = Mothers.objects.get(hive__place__beekeeper=user, active=True, id=mother_id)
+
+        form = ChangeMotherHive(user=user, mother=mother)
+
+        if request.method == 'POST':
+            form = ChangeMotherHive(data=request.POST, user=user, mother=mother)
+            if form.is_valid():
+
+                new_hive = form.cleaned_data['new_hive']
+
+                with transaction.atomic():
+                    if mother.hive_id:
+                        old_hive = Hives.objects.get(id=mother.hive_id)
+                        old_hive.mother = None
+                        old_hive.save()
+
+                    mother.hive_id = new_hive.id
+                    mother.save()
+
+                    messages.success(request, f"Matka {mother.mark} byla úspěšně přemístěna do včelstva č."
+                                              f"{new_hive.number} na stanovišti {new_hive.place.name}.")
+                    return redirect('hives_place', new_hive.place_id)
+            else:
+                messages.error(request, form.errors)
+                messages.error(request, request.POST)
+    except Exception as e:
+        messages.error(request, f'Chyba při přemisťování matky: {e}')
+
+    return redirect('mothers', mother_id)
+
 
 @login_required
 def add_hives_place(request):
@@ -399,7 +463,7 @@ def move_hive(request, old_hives_place):
                                      )
                     return redirect('hives_place', new_hives_place.id)
             else:
-                messages.error(request, 'Formulář není platný. Opravte prosím chyby ve formuláři.')
+                messages.error(request, 'Nevybral jste žádná včelstva k přemístění.')
         else:
             return redirect('hives_place', old_hives_place.id)
     except Http404:

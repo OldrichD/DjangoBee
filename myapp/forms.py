@@ -1,4 +1,6 @@
 from django import forms
+from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.utils import timezone
 from django.contrib.auth.forms import UserCreationForm
 from myapp.models import Beekeepers, HivesPlaces, Hives, Mothers, Visits, Tasks
@@ -49,6 +51,7 @@ class AddMother(forms.ModelForm):
         mothers_queryset = Mothers.objects.filter(hive__place__beekeeper__username=user.username)
         self.fields['ancestor'].queryset = mothers_queryset
 
+
 class AddVisit(forms.ModelForm):
     date = forms.CharField(initial=timezone.now().strftime('%d. %m. %Y'))
     performed_tasks = forms.ModelMultipleChoiceField(
@@ -71,6 +74,7 @@ class AddVisit(forms.ModelForm):
 class ChangeHivesPlace(forms.Form):
     old_hives_place = forms.CharField(widget=forms.HiddenInput(), required=False)
 
+
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         hives_place_id = kwargs.pop('hives_place_id', None)
@@ -79,11 +83,40 @@ class ChangeHivesPlace(forms.Form):
         self.fields['selected_hives'] = forms.ModelMultipleChoiceField(
             queryset=Hives.objects.filter(place__beekeeper=user),
             widget=forms.CheckboxSelectMultiple,
-            label='Vyberte včelstva'
+            label='Vyberte včelstva',
+            required=True
         )
 
         self.fields['new_hives_place'] = forms.ModelChoiceField(
             queryset=HivesPlaces.objects.filter(beekeeper=user, active=True).exclude(id=hives_place_id),
             label='Vyberte nové stanoviště',
         )
+
+
+class CustomHiveWidget(forms.Select):
+    def format_option(self, obj):
+        return self.label_from_instance(obj)
+
+
+class ChangeMotherHive(forms.Form):
+    def __init__(self, *args, user=None, mother_id=None, **kwargs):
+        self.mother = kwargs.pop('mother', None)
+        self.user = kwargs.pop('user', None)
+        super(ChangeMotherHive, self).__init__(*args, **kwargs)
+
+        # Předání parametru 'user' do konstruktoru pole 'new_hive'
+        self.fields['new_hive'] = forms.ModelChoiceField(
+            queryset=Hives.objects.filter(active=True),
+            label='Vyberte nové včelstvo:',
+            widget=CustomHiveWidget()
+        )
+        self.fields['new_hive'].label_from_instance = self.label_from_instance
+
+    @staticmethod
+    def label_from_instance(obj):
+        return f"{obj.place} - č. {obj}"
+
+
+
+
 

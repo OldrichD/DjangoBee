@@ -25,7 +25,8 @@
                 <td>{{ last_visits|get_name:hives_place.name|date:"d. m. Y" }}</td>
                 <td><a href="{% url 'hives_place' hives_place.id %}">Zobrazit</a></td>
                 <td><a href="{% url 'remove_hives_place' hives_place.id %}"
-                        onclick="return confirmDelete({{ hives_places_dict|get_name:hives_place.name }})">
+                        onclick="return confirmDelete({{ hives_places_dict|get_name:hives_place.name }},
+                        'Chystáte se odstranit stanoviště i se včelstvy. Pokud chcete včelstva zachovat, nejprve je přemístěte na jiné stanoviště.')">
                         Smazat
                 </a></td>
                 </tr>

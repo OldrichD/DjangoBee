@@ -2,9 +2,20 @@
 {% load custom_filters %}
 {% if mother.active == False %}
     <div><a href="{% url 'erase_mother' mother.id %}"
-        onclick="return confirmErase()">
+        onclick="return confirmDelete(1, 'Úplné odstranění záznamů o zrušené mace může mít vliv na sledování rodokmenů.')">
         Odstranit záznamy o zrušené matce.
     </a></div>
+{% else %}
+    <div><a href="{% url 'remove_mother' mother.id %}"
+        onclick="return confirmDelete(1, 'Zrušená matka již nebude dostupná. Pokud ji chcete dále používat, přemístěte ji do jiného včelstva.')">
+        Zrušit matku.
+    </a></div>
+    <form method="post" action="{% url 'move_mother' mother.id %}">
+        {% csrf_token %}
+        <label for="id_new_hive">Vyberte nové včelstvo:</label>
+        {{ form.new_hive }}
+        <button type="submit">Přemístit</button>
+    </form>
 {% endif %}
 <table>
     <tbody>
