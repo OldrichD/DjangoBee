@@ -34,6 +34,7 @@ class AddHivesPlace(forms.ModelForm):
 
         return name
 
+
 class AddHive(forms.ModelForm):
     class Meta:
         model = Hives
@@ -53,7 +54,26 @@ class AddMother(forms.ModelForm):
 
 
 class AddVisit(forms.ModelForm):
-    date = forms.CharField(initial=timezone.now().strftime('%d. %m. %Y'))
+    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), input_formats=['%d. %m. %Y'])
+    performed_tasks = forms.ModelMultipleChoiceField(
+        queryset=Tasks.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    class Meta:
+        model = Visits
+        fields = ['date', 'inspection_type', 'condition', 'hive_body_size',
+                  'honey_supers_size', 'honey_yield', 'medication_application',
+                  'disease', 'mite_drop', 'performed_tasks']
+
+    def clean_date(self):
+        raw_date = self.cleaned_data['date']
+        formatted_date = timezone.datetime.strptime(raw_date, '%d. %m. %Y').strftime('%Y-%m-%d')
+        return formatted_date
+
+
+class EditVisit(forms.ModelForm):
+    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), input_formats=['%d. %m. %Y'])
     performed_tasks = forms.ModelMultipleChoiceField(
         queryset=Tasks.objects.all(),
         widget=forms.CheckboxSelectMultiple,

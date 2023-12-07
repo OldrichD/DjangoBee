@@ -8,7 +8,7 @@ from django.db.models import Count, Value, Max
 from django.db.models.query_utils import Q
 from django.db.models.functions import Coalesce
 from myapp.forms import (
-    LoginForm, RegisterForm, AddHivesPlace, AddHive, AddMother, AddVisit, ChangeHivesPlace, ChangeMotherHive
+    LoginForm, RegisterForm, AddHivesPlace, AddHive, AddMother, AddVisit, ChangeHivesPlace, ChangeMotherHive, EditVisit
 )
 from myapp.models import Hives, HivesPlaces, Beekeepers, Visits, Mothers, Tasks
 
@@ -488,4 +488,32 @@ def remove_visit(request, visit_id=None):
         messages.error(request, f"Záznam o prohlídce přihlášeného uživatele neexistuje.")
     return redirect('overview')
 
+
+@login_required
+def edit_visit(request, visit_id):
+    try:
+        user_hive = get_object_or_404(Hives, visits__id=visit_id, place__beekeeper=request.user, active=True)
+        visit = get_object_or_404(Visits, id=visit_id, hive__place__beekeeper=request.user, active=True)
+    except Http404:
+        messages.error(request, "Záznamy o vybraném včelstvu nejsou k dispozici...")
+        return redirect('overview')
+
+    if request.method == 'POST':
+        form = EditVisit(request.POST, instance=visit)
+        if form.is_valid():
+            form.save()
+            form.instance.performed_tasks.set(form.cleaned_data['performed_tasks'])
+            messages.success(request, f'Prohlídka u včelstva {visit.hive.number} '
+                                      f'na stanovišti {visit.hive.place.name} '
+                                      f'byla úspěšně upravena.')
+            return redirect('visits', user_hive.id)
+
+    else:
+        form = EditVisit(instance=visit)
+
+    return render(request, 'create_visit.html', {
+        'form': form,
+        'visit': visit,
+        'user_hive': user_hive
+    })
 

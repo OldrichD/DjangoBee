@@ -76,7 +76,8 @@
                 <td>{{ visit.disease}}</td>
                 <td>{{ visit.mite_drop}}</td>
                 <td>
-                    <a href="{% url 'remove_visit' visit.id %}">Smazat prohlídku</a>
+                    <div><a href="{% url 'remove_visit' visit.id %}">Smazat prohlídku</a></div>
+                    <div><a href="{% url 'edit_visit' visit.id %}">Upravit prohlídku</a></div>
                 </td>
             </tr>
         {% endfor %}
