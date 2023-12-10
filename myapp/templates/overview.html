@@ -3,6 +3,8 @@
 {% block content %}
 
 {% if overview_spec == 'hives' %}
+    <h2>Stanoviště: {{ hives_place_name }}</h2>
+    <h2>Počet včelstev: {{ hives_count }}</h2>
     {% include 'hives_table.html' %}
 {% elif overview_spec == 'visits' %}
     {% include 'visits_table.html' %}

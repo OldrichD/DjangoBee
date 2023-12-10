@@ -23,6 +23,7 @@ from django.contrib.auth.decorators import login_required
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
+
     path('login/', views.login_user, name='login_user'),
     path('logout/', views.logout_user, name='logout_user'),
     path('signup/', views.signup, name='signup'),
@@ -32,8 +33,10 @@ urlpatterns = [
 
     path('hives_place/<int:hives_place_id>/', login_required(views.hives_place), name='hives_place'),
     path('add_hives_place/', login_required(views.add_hives_place), name='add_hives_place'),
-    path('remove_hives_place/<str:hives_place_id>/', login_required(views.remove_hives_place), name='remove_hives_place'),
-    path('remove_hives_place/<str:hives_place_id>/', login_required(views.remove_hives_place), name='remove_hives_place'),
+    path('remove_hives_place/<str:hives_place_id>/',
+         login_required(views.remove_hives_place), name='remove_hives_place'),
+    path('edit_hives_place/<str:hives_place_id>/',
+         login_required(views.edit_hives_place), name='edit_hives_place'),
 
     path('add_hive/<str:hives_place_id>', login_required(views.add_hive), name='add_hive'),
     path('remove_hive/<str:hive_id>/', login_required(views.remove_hive), name='remove_hive'),
@@ -49,8 +52,4 @@ urlpatterns = [
     path('add_visit/<str:hive_id>/', login_required(views.add_visit), name='add_visit'),
     path('remove_visit/<str:visit_id>/', login_required(views.remove_visit), name='remove_visit'),
     path('edit_visit/<str:visit_id>/', login_required(views.edit_visit), name='edit_visit'),
-
-
-
-
 ]

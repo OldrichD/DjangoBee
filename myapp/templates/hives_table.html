@@ -7,7 +7,7 @@
 <form method="post" action="{% url 'move_hive' hives_place_id %}">
     <input type="hidden" name="old_hives_place" value="{{ hives_place_id }}">
     {% csrf_token %}
-    <table>
+    <table class="table basic-table">
         <thead>
             <tr>
                 <th></th>

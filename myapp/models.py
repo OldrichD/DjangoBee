@@ -26,7 +26,8 @@ class HivesPlaces(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['beekeeper', 'name'],
-                name='unique_beekeeper_place_name'
+                condition=models.Q(active=True),
+                name='unique_active_beekeeper_place_name'
             )
         ]
 
@@ -43,6 +44,7 @@ class Hives(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['place', 'number'],
+                condition=models.Q(active=True),
                 name='unique_place_hive_number'
             )
         ]
@@ -76,19 +78,18 @@ class Visits(models.Model):
     hive = models.ForeignKey(Hives, on_delete=models.SET_NULL, null=True, related_name='visits')
     date = models.DateField()
     inspection_type = models.CharField(max_length=255)
-    condition = models.IntegerField()
-    hive_body_size = models.CharField(max_length=255)
-    honey_supers_size = models.CharField(max_length=255)
-    honey_yield = models.FloatField()
-    medication_application = models.CharField(max_length=255)
-    disease = models.CharField(max_length=255)
-    mite_drop = models.IntegerField()
+    condition = models.IntegerField(null=True, blank=True)
+    hive_body_size = models.CharField(max_length=255, null=True, blank=True)
+    honey_supers_size = models.CharField(max_length=255, null=True, blank=True)
+    honey_yield = models.FloatField(null=True, blank=True)
+    medication_application = models.CharField(max_length=255, null=True, blank=True)
+    disease = models.CharField(max_length=255, null=True, blank=True)
+    mite_drop = models.IntegerField(null=True, blank=True)
     performed_tasks = models.ManyToManyField(Tasks, blank=True)
     active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.date}"
-
 
 
 

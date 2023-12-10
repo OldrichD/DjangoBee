@@ -2,6 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils import timezone
+from datetime import date
 from django.contrib.auth.forms import UserCreationForm
 from myapp.models import Beekeepers, HivesPlaces, Hives, Mothers, Visits, Tasks
 
@@ -29,7 +30,7 @@ class AddHivesPlace(forms.ModelForm):
         name = self.cleaned_data.get('name')
 
         # Kontrola, zda záznam s daným beekeeper_id a place_name již existuje
-        if HivesPlaces.objects.filter(beekeeper=beekeeper, name=name).exists():
+        if HivesPlaces.objects.filter(beekeeper=beekeeper, name=name, active=True).exists():
             raise forms.ValidationError("Záznam s tímto jménem již existuje pro daného včelaře.")
 
         return name
@@ -54,10 +55,21 @@ class AddMother(forms.ModelForm):
 
 
 class AddVisit(forms.ModelForm):
-    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), input_formats=['%d. %m. %Y'])
+    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), initial=date.today())
+    inspection_type = forms.CharField(required=True)
+
+    condition = forms.CharField(required=False)
+    hive_body_size = forms.CharField(required=False)
+    honey_supers_size = forms.CharField(required=False)
+    honey_yield = forms.CharField(required=False)
+    medication_application = forms.CharField(required=False)
+    disease = forms.CharField(required=False)
+    mite_drop = forms.CharField(required=False)
+
     performed_tasks = forms.ModelMultipleChoiceField(
         queryset=Tasks.objects.all(),
         widget=forms.CheckboxSelectMultiple,
+        required=False
     )
 
     class Meta:
@@ -65,18 +77,24 @@ class AddVisit(forms.ModelForm):
         fields = ['date', 'inspection_type', 'condition', 'hive_body_size',
                   'honey_supers_size', 'honey_yield', 'medication_application',
                   'disease', 'mite_drop', 'performed_tasks']
-
-    def clean_date(self):
-        raw_date = self.cleaned_data['date']
-        formatted_date = timezone.datetime.strptime(raw_date, '%d. %m. %Y').strftime('%Y-%m-%d')
-        return formatted_date
 
 
 class EditVisit(forms.ModelForm):
-    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), input_formats=['%d. %m. %Y'])
+    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+    inspection_type = forms.CharField(required=True)
+
+    condition = forms.CharField(required=False)
+    hive_body_size = forms.CharField(required=False)
+    honey_supers_size = forms.CharField(required=False)
+    honey_yield = forms.CharField(required=False)
+    medication_application = forms.CharField(required=False)
+    disease = forms.CharField(required=False)
+    mite_drop = forms.CharField(required=False)
+
     performed_tasks = forms.ModelMultipleChoiceField(
         queryset=Tasks.objects.all(),
         widget=forms.CheckboxSelectMultiple,
+        required=False
     )
 
     class Meta:
@@ -85,10 +103,21 @@ class EditVisit(forms.ModelForm):
                   'honey_supers_size', 'honey_yield', 'medication_application',
                   'disease', 'mite_drop', 'performed_tasks']
 
-    def clean_date(self):
-        raw_date = self.cleaned_data['date']
-        formatted_date = timezone.datetime.strptime(raw_date, '%d. %m. %Y').strftime('%Y-%m-%d')
-        return formatted_date
+
+class EditHivesPlace(forms.ModelForm):
+    class Meta:
+        model = HivesPlaces
+        fields = ['name', 'type', 'location', 'comment']
+
+    def clean_name(self):
+        beekeeper = self.cleaned_data.get('beekeeper')
+        name = self.cleaned_data.get('name')
+
+        # Kontrola, zda záznam s daným beekeeper_id a place_name již existuje
+        if HivesPlaces.objects.filter(beekeeper=beekeeper, name=name, active=True).exists():
+            raise forms.ValidationError("Záznam s tímto jménem již existuje pro daného včelaře.")
+
+        return name
 
 
 class ChangeHivesPlace(forms.Form):

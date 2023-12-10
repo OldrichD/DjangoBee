@@ -1,15 +1,21 @@
 <!-- hives_places_table.html -->
 {% load custom_filters %}
 
-<table>
+<table class="table basic-table">
     <thead>
         <tr>
             <th>Název</th>
             <th>Včelstev</th>
+            <th>Matek</th>
             <th>Typ</th>
+            <th>Průměrný <br> výnos</th>
+            <th>Průměrná <br> kondice</th>
+            <th>Průměrný <br> spad</th>
             <th>Lokace</th>
             <th>Komentář</th>
-            <th>Poslední prohlídka</th>
+            <th>Poslední  <br>prohlídka</th>
+            <th>Poslední provedený úkon</th>
+            <th></th>
             <th></th>
             <th></th>
         </tr>
@@ -17,19 +23,35 @@
     <tbody>
         {% for hives_place in hives_places %}
             <tr>
-                <td>{{ hives_place.name }}</td>
+                <th scope="row">{{ hives_place.name }}</th>
                 <td>{{ hives_places_dict|get_name:hives_place.name }}</td>
+                <td>
+                    {% if mothers_count_dict|get_name:hives_place.name is not None %}
+                        {{ mothers_count_dict|get_name:hives_place.name }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </td>
                 <td>{{ hives_place.type }}</td>
+                <td>{{ avg_honey_yield_dict|get_name:hives_place.name|default:"N/A"|floatformat:1 }} kg</td>
+                <td>{{ avg_condition_dict|get_name:hives_place.name|default:"N/A"|floatformat:1 }}</td>
+                <td>{{ avg_last_mite_drop_dict|get_name:hives_place.name|default:"N/A"|floatformat:0 }}</td>
                 <td>{{ hives_place.location }}</td>
                 <td>{{ hives_place.comment }}</td>
-                <td>{{ last_visits|get_name:hives_place.name|date:"d. m. Y" }}</td>
+                <td>{{ last_visit_date|get_name:hives_place.name|date:"d. m. Y" }}</td>
+                <td class="left-aligned-column"><ul>
+                    {% for task in tasks_dict|get_name:hives_place.name %}
+                        <li>{{ task }}</li>
+                    {% endfor %}
+                </ul></td>
                 <td><a href="{% url 'hives_place' hives_place.id %}">Zobrazit</a></td>
                 <td><a href="{% url 'remove_hives_place' hives_place.id %}"
                         onclick="return confirmDelete({{ hives_places_dict|get_name:hives_place.name }},
                         'Chystáte se odstranit stanoviště i se včelstvy. Pokud chcete včelstva zachovat, nejprve je přemístěte na jiné stanoviště.')">
                         Smazat
                 </a></td>
-                </tr>
+                <td><a href="{% url 'edit_hives_place' hives_place.id %}">Editovat</a></td>
+            </tr>
         {% endfor %}
     </tbody>
 </table>

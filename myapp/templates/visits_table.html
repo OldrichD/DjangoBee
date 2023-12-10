@@ -42,7 +42,7 @@
     <a href="{% url 'add_visit' user_hive.id %}">Zapsat prohlídku</a>
 </div>
 
-<table>
+<table class="table basic-table">
     <thead>
         <tr>
             <th>Datum</th>
@@ -55,6 +55,7 @@
             <th>Aplikace léčiva</th>
             <th>Onemocnění</th>
             <th>Spad</th>
+            <th></th>
             <th></th>
         </tr>
     </thead>
@@ -77,6 +78,8 @@
                 <td>{{ visit.mite_drop}}</td>
                 <td>
                     <div><a href="{% url 'remove_visit' visit.id %}">Smazat prohlídku</a></div>
+                </td>
+                <td>
                     <div><a href="{% url 'edit_visit' visit.id %}">Upravit prohlídku</a></div>
                 </td>
             </tr>
