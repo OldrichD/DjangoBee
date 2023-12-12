@@ -49,15 +49,16 @@
             {% endif %}
         </tr>
         <tr>
-            <td>Výkonnost</td>
-            <td>{{ mother.performance }}</td>
-        </tr>
-        <tr>
             <td>Mateřská linie</td>
             <td>{{ mother.female_line }}</td>
         </tr>
+            <tr>
+            <td>Komentář</td>
+            <td>{{ mother.comment }}</td>
+        </tr>
     </tbody>
 </table>
+<a href="{% url 'edit_mother' mother.id %}">Upravit údaje o matce</a><br><br>
 
 Předci:
 <div>

@@ -44,6 +44,7 @@ urlpatterns = [
 
     path('mothers/<str:mother_id>/', login_required(views.mothers), name='mothers'),
     path('add_mother/<str:hive_id>/', login_required(views.add_mother), name='add_mother'),
+    path('edit_mother/<str:mother_id>/', login_required(views.edit_mother), name='edit_mother'),
     path('remove_mother/<str:mother_id>/', login_required(views.remove_mother), name='remove_mother'),
     path('erase_mother/<str:mother_id>/', login_required(views.erase_mother), name='erase_mother'),
     path('move_mother/<str:mother_id>/', login_required(views.move_mother), name='move_mother'),

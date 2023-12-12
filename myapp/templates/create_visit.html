@@ -27,7 +27,7 @@
 </table>
 
   <h2>Zápis prohlídky:</h2>
-  <form method="post">
+  <form method="post" id="add-visit-form">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Uložit</button>

@@ -36,7 +36,6 @@ class Hives(models.Model):
     place = models.ForeignKey(HivesPlaces, on_delete=models.CASCADE, related_name='hives')
     number = models.IntegerField()
     type = models.CharField(max_length=255)
-    size = models.IntegerField()
     comment = models.TextField()
     active = models.BooleanField(default=True)
 
@@ -63,6 +62,11 @@ class Mothers(models.Model):
     comment = models.TextField()
     active = models.BooleanField(default=True)
 
+    def display_name(self):
+        if self.female_line:
+            return f'{self.mark} (linie: {self.female_line})'
+        return self.mark
+
     def __str__(self):
         return self.mark
 
@@ -79,8 +83,8 @@ class Visits(models.Model):
     date = models.DateField()
     inspection_type = models.CharField(max_length=255)
     condition = models.IntegerField(null=True, blank=True)
-    hive_body_size = models.CharField(max_length=255, null=True, blank=True)
-    honey_supers_size = models.CharField(max_length=255, null=True, blank=True)
+    hive_body_size = models.IntegerField(null=True, blank=True)
+    honey_supers_size = models.IntegerField(null=True, blank=True)
     honey_yield = models.FloatField(null=True, blank=True)
     medication_application = models.CharField(max_length=255, null=True, blank=True)
     disease = models.CharField(max_length=255, null=True, blank=True)

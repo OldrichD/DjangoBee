@@ -5,7 +5,7 @@ from django.http import Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
+from django.db import transaction, models
 from django.db.models import Count, Value, Max, Avg, Subquery, OuterRef, F
 from django.db.models.query_utils import Q
 from django.db.models.functions import Coalesce
@@ -124,46 +124,84 @@ def overview(request):
 
     last_visit_date = {item['hive__place__name']: item['last_visit'] for item in last_visit_date}
 
-    subquery = Visits.objects.filter(
+    # Naposledy provedené úkony během návštěvy včelstva
+    last_tasks_subquery = Visits.objects.filter(
         hive__place=OuterRef('pk'),
-        hive__place__active=True,
-        active=True
-    ).order_by('-date', 'hive__number').values('performed_tasks')[:1]
+        hive__active=True,
+        active=True,
+        performed_tasks__isnull=False
+    ).order_by('-date', 'hive__number').values(last_performed_task=ArrayAgg('performed_tasks__name'))[:1]
 
-    # Hlavní dotaz pro získání poslední návštěvy pro každé aktivní místo
-    latest_visits = HivesPlaces.objects.filter(
+    places_with_last_performed_tasks = HivesPlaces.objects.filter(
+        beekeeper=request.user,
         active=True
     ).annotate(
-        last_visit_name=Subquery(subquery.values('hive__place__name')[:1]),
-        last_visit_tasks=ArrayAgg('hives__visits__performed_tasks__name', filter=Q(hives__visits__date=Subquery(subquery.values('date')[:1])))
-    ).values('last_visit_name', 'last_visit_tasks')
+        last_performed_tasks=Subquery(last_tasks_subquery)
+    ).values('name', 'last_performed_tasks')
 
-    tasks_dict = {item['last_visit_name']: item['last_visit_tasks'] for item in latest_visits}
+    tasks_dict = {item['name']: item['last_performed_tasks'] for item in places_with_last_performed_tasks}
 
+    # Vytvoření slovníku průměrných hodnot 'mite_drop' pro jednotlivá stanoviště
     last_mite_drop_subquery = (
         Visits.objects
-        .filter(hive__place=OuterRef('pk'))
-        .exclude(mite_drop__isnull=True)
+        .filter(
+            hive=OuterRef('pk'),
+            mite_drop__isnull=False,
+            active=True
+        )
         .order_by('-date')
         .values('mite_drop')[:1]
     )
 
-    results_to_dicts = HivesPlaces.objects.filter(beekeeper=request.user, active=True).annotate(
-        avg_last_mite_drop=Coalesce(Subquery(last_mite_drop_subquery), 0)
+    places_with_avg_mite_drop = Hives.objects.filter(
+        place__beekeeper=request.user,
+        active=True,
+    ).annotate(
+        avg_mite_drop=Subquery(last_mite_drop_subquery)
+    ).exclude(
+        avg_mite_drop__isnull=True
+    ).values('place__name').annotate(
+        avg_mite_drop=Avg('avg_mite_drop')
     )
 
-    avg_last_mite_drop_dict = {item.name: item.avg_last_mite_drop for item in results_to_dicts}
+    mite_drop_dict = {item['place__name']: item['avg_mite_drop'] for item in places_with_avg_mite_drop}
 
-    warning="Chystáte se odstranit stanoviště i se včelstvy. Pokud chcete včelstva zachovat, nejprve je přemístěte na jiné stanoviště."
+    # Vytvoření slovníků pro poslední datum aplikace léčiva
+    last_medication_subquery = Visits.objects.filter(
+        hive__place=OuterRef('pk'),
+        medication_application__gt='',
+        active=True
+        ).order_by('-date').values('medication_application', 'date')[:1]
+
+    places_with_last_medical_application = HivesPlaces.objects.filter(
+        beekeeper=request.user,
+        active=True,
+    ).annotate(
+        last_medication=Subquery(last_medication_subquery.values('medication_application')),
+        last_medication_date=Subquery(last_medication_subquery.values('date'))
+    ).values('name', 'last_medication', 'last_medication_date')
+
+    medical_application_dict = {item['name']: item['last_medication']
+                                for item in places_with_last_medical_application}
+    medical_application_date_dict = {item['name']: item['last_medication_date']
+                                     for item in places_with_last_medical_application}
+
+    # Varování před smazáním stanoviště s aktivními včelstvy
+    warning = "Chystáte se odstranit stanoviště i se včelstvy. " \
+            "Pokud chcete včelstva zachovat, nejprve je přemístěte na jiné stanoviště."
+
+    # Vykreslení šablony iverview a předání všech potřebných dat
     return render(request, 'overview.html', {
         'hives_places_count': hives_places_count,
         'hives_count': hives_count,
         'mothers_count_dict': mothers_count_dict,
         'avg_honey_yield_dict': avg_honey_yield_dict,
         'avg_condition_dict': avg_condition_dict,
-        'avg_last_mite_drop_dict': avg_last_mite_drop_dict,
+        'mite_drop_dict': mite_drop_dict,
         'hives_places': hives_places,
         'hives_places_dict': hives_places_dict,
+        'medical_application_dict': medical_application_dict,
+        'medical_application_date_dict': medical_application_date_dict,
         'tasks_dict': tasks_dict,
         'last_visit_date': last_visit_date,
         'warning': warning
@@ -512,6 +550,33 @@ def add_mother(request, hive_id=None):
 
 
 @login_required
+def edit_mother(request, mother_id=None):
+    try:
+        selected_mother = get_object_or_404(Mothers, id=mother_id, hive__place__beekeeper=request.user, active=True)
+    except Http404:
+        messages.error(request, "Uživatel může editovat údaje pouze o svých matkách.")
+        return redirect('overview')
+
+    if request.method == 'POST':
+        form = AddMother(request.user, request.POST, instance=selected_mother)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Údaje o matce {selected_mother.mark}'
+                                      f' ve včelstvu {selected_mother.hive.number} '
+                                      f'na stanovišti {selected_mother.hive.place.name} '
+                                      f'byly aktualizovány.'
+                             )
+            return redirect('hives_place', selected_mother.hive.place.id)
+    else:
+        form = AddMother(request.user, instance=selected_mother)
+
+    return render(request, 'create_mother.html', {
+        'form': form,
+        'selected_mother': selected_mother
+    })
+
+
+@login_required
 def visits(request, hive_id=None):
     try:
         user_hive = get_object_or_404(Hives, id=hive_id, place__beekeeper=request.user)
@@ -534,7 +599,6 @@ def add_visit(request, hive_id=None):
     try:
         user_hive = get_object_or_404(Hives, id=hive_id, place__beekeeper=request.user, active=True)
         user_hive.mother = Mothers.objects.filter(hive=user_hive, active=True)
-
     except Http404:
         messages.error(request, "Záznamy o vybraném včelstvu nejsou k dispozici.")
         return redirect('overview')
@@ -555,7 +619,30 @@ def add_visit(request, hive_id=None):
                                       f'byla zapsána prohlídka.')
             return redirect('visits', user_hive.id)
     else:
-        form = AddVisit()
+        try:
+            latest_visit = Visits.objects.filter(
+                hive__place__beekeeper=request.user,
+                hive_id=hive_id,
+                active=True
+            ).aggregate(latest_visit_date=Max('date'))['latest_visit_date']
+
+            visit_instance = get_object_or_404(
+                Visits,
+                hive__place__beekeeper=request.user,
+                hive_id=hive_id,
+                date=latest_visit,
+                active=True
+            )
+
+            form_data = {
+                'condition': visit_instance.condition,
+                'hive_body_size': visit_instance.hive_body_size,
+                'honey_supers_size': visit_instance.honey_supers_size,
+            }
+
+            form = AddVisit(initial=form_data)
+        except Http404:
+            form = AddVisit()
 
     return render(request, 'create_visit.html', {
         'form': form,
@@ -588,7 +675,7 @@ def edit_visit(request, visit_id):
         user_hive = get_object_or_404(Hives, visits__id=visit_id, place__beekeeper=request.user, active=True)
         visit_instance = get_object_or_404(Visits, id=visit_id, hive__place__beekeeper=request.user, active=True)
     except Http404:
-        messages.error(request, "Záznamy o vybraném včelstvu nejsou k dispozici...")
+        messages.error(request, "Požadované záznamy o vybraném včelstvu nejsou k dispozici...")
         return redirect('overview')
 
     if request.method == 'POST':

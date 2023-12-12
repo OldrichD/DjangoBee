@@ -4,17 +4,16 @@
 <table class="table basic-table">
     <thead>
         <tr>
-            <th>Název</th>
-            <th>Včelstev</th>
-            <th>Matek</th>
-            <th>Typ</th>
-            <th>Průměrný <br> výnos</th>
+            <th>Název<br>(lokace)</th>
+            <th>Poznámka</th>
+            <th>Včelstev<br>/ matek</th>
+            <th>Typ<br>stanoviště</th>
+            <th>Průměrný <br> medný výnos</th>
             <th>Průměrná <br> kondice</th>
             <th>Průměrný <br> spad</th>
-            <th>Lokace</th>
-            <th>Komentář</th>
-            <th>Poslední  <br>prohlídka</th>
+            <th>Poslední  <br> prohlídka</th>
             <th>Poslední provedený úkon</th>
+            <th>Léčivo</th>
             <th></th>
             <th></th>
             <th></th>
@@ -23,9 +22,10 @@
     <tbody>
         {% for hives_place in hives_places %}
             <tr>
-                <th scope="row">{{ hives_place.name }}</th>
-                <td>{{ hives_places_dict|get_name:hives_place.name }}</td>
-                <td>
+                <th scope="row">{{ hives_place.name }}<br>({{ hives_place.location }})</th>
+                <td>{{ hives_place.comment }}</td>
+                <td>{{ hives_places_dict|get_name:hives_place.name }}
+                    /
                     {% if mothers_count_dict|get_name:hives_place.name is not None %}
                         {{ mothers_count_dict|get_name:hives_place.name }}
                     {% else %}
@@ -35,15 +35,20 @@
                 <td>{{ hives_place.type }}</td>
                 <td>{{ avg_honey_yield_dict|get_name:hives_place.name|default:"N/A"|floatformat:1 }} kg</td>
                 <td>{{ avg_condition_dict|get_name:hives_place.name|default:"N/A"|floatformat:1 }}</td>
-                <td>{{ avg_last_mite_drop_dict|get_name:hives_place.name|default:"N/A"|floatformat:0 }}</td>
-                <td>{{ hives_place.location }}</td>
-                <td>{{ hives_place.comment }}</td>
+                <td>
+                    {{ mite_drop_dict|get_name:hives_place.name }}
+                </td>
                 <td>{{ last_visit_date|get_name:hives_place.name|date:"d. m. Y" }}</td>
-                <td class="left-aligned-column"><ul>
+                <td class="left-aligned-column">
                     {% for task in tasks_dict|get_name:hives_place.name %}
-                        <li>{{ task }}</li>
+                        {{ task }}<br>
                     {% endfor %}
-                </ul></td>
+                </td>
+                <td>
+                    {{ medical_application_dict|get_name:hives_place.name }}
+                    <br>
+                    ({{ medical_application_date_dict|get_name:hives_place.name|date:"d. m. Y" }})
+                </td>
                 <td><a href="{% url 'hives_place' hives_place.id %}">Zobrazit</a></td>
                 <td><a href="{% url 'remove_hives_place' hives_place.id %}"
                         onclick="return confirmDelete({{ hives_places_dict|get_name:hives_place.name }},

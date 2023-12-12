@@ -63,19 +63,19 @@
         {% for visit in user_visits %}
             <tr>
                 <td>{{ visit.date|date:"d. m. Y" }}</td>
-                <td>{{ visit.inspection_type}}</td>
+                <td>{{ visit.inspection_type }}</td>
                 <td>
-                     {% for task in visit.performed_tasks.all %}
+                    {% for task in visit.performed_tasks.all %}
                         <p>{{ task.name }}</p>
                     {% endfor %}
                 </td>
-                <td>{{ visit.condition}}</td>
-                <td>{{ visit.hive_body_size}}</td>
-                <td>{{ visit.honey_supers_size}}</td>
-                <td>{{ visit.honey_yield}}</td>
-                <td>{{ visit.medication_application}}</td>
-                <td>{{ visit.disease}}</td>
-                <td>{{ visit.mite_drop}}</td>
+                <td>{% if visit.condition is not None %}{{ visit.condition }}{% endif %}</td>
+                <td>{% if visit.hive_body_size is not None %}{{ visit.hive_body_size }}{% endif %}</td>
+                <td>{% if visit.honey_supers_size is not None %}{{ visit.honey_supers_size }}{% endif %}</td>
+                <td>{% if visit.honey_yield is not None %}{{ visit.honey_yield }}{% endif %}</td>
+                <td>{% if visit.medication_application is not None %}{{ visit.medication_application }}{% endif %}</td>
+                <td>{% if visit.disease is not None %}{{ visit.disease }}{% endif %}</td>
+                <td>{% if visit.mite_drop is not None %}{{ visit.mite_drop }}{% endif %}</td>
                 <td>
                     <div><a href="{% url 'remove_visit' visit.id %}">Smazat prohlídku</a></div>
                 </td>

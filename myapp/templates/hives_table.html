@@ -11,13 +11,19 @@
         <thead>
             <tr>
                 <th></th>
-                <th>Číslo včelstva</th>
+                <th>Číslo/th>
                 <th>Typ úlu</th>
-                <th>Velikost</th>
                 <th>Komentář</th>
                 <th>Matka</th>
+                <th>Velikost</th>
+                <th>Kondice</th>
+                <th>Medný výnos</th>
+                <th>Spad</th>
+                <th>Léčivo</th>
+                <th>Nemoci</th>
+                <th>Poslední poznámka</th>
                 <th></th>
-                <th>Poslední prohlídka</th>
+                <th>Poslední návštěva</th>
                 <th></th>
                 <th></th>
                 <th></th>
@@ -32,12 +38,11 @@
                     </td>
                     <td>{{ hive.number }}</td>
                     <td>{{ hive.type }}</td>
-                    <td>{{ hive.size }}</td>
                     <td>{{ hive.comment }}</td>
 
                     {# Přidání sloupce pro hodnotu 'mark' z tabulky 'Mother' #}
                     {% if mothers_dict|get_name:hive.id is None %}
-                        <td>Bet matky</td>
+                        <td>Bez matky</td>
                         <td><a href="{% url 'add_mother' hive.id %}">Přidat matku</a></td>
                     {% else %}
                         <td><a href="{% url 'mothers' mothers_dict|get_name:hive.id %}">
@@ -48,6 +53,13 @@
                             Zrušit matku
                         </a></td>
                     {% endif %}
+
+                    <td>
+                        {# Velikost úlu ve formátu hive_body_size + honey_supers_size z tabulky 'Visits' #}
+                        {% if hive_visits %}
+                            {{hive_visits.hive_body_size}} + {{hive_visits.hive_supers_size}}
+                        {% endif %}
+                    </td>
                     <td>{{ last_visits|get_name:hive.id|date:"d. m. Y" }}</td>
                     <td><a href="{% url 'add_visit' hive.id %}">Zapsat prohlídku</a></td>
                     <td><a href="{% url 'visits' hive.id %}">Zobrazit prohlídky</a></td>
