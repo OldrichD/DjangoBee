@@ -44,4 +44,8 @@ If you have ideas for improvements or encounter issues, I welcome your contribut
 License
 This application is licensed under the MIT License.
 
+<<<<<<< HEAD
 Thank you for your interest in my beekeeper web application! If you have any questions or issues, feel free to contact me.
+=======
+Thank you for your interest in my beekeeper web application! If you have any questions or issues, feel free to contact me.
+>>>>>>> 1589405415d874e36c43a0538758db4c13ae0ed8
