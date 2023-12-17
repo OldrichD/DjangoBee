@@ -8,29 +8,37 @@
     <link rel="stylesheet" type="text/css" href="{% static 'bee_note_css.css' %}">
 </head>
     <body>
-        <div class="container">
-            <div>
-                <a href="{% url 'index' %}">BEE-NOTE.info:   </a>
+        <!-- Horní pruh -->
+        <div class="full-width-div">
+            <a href="{% url 'index' %}">BEE-NOTE.info:   </a>
                 Elektronický deník pro zápis a zobrazení dat o chovaných včelstev.
-            </div>
-            {% if messages %}
-              <ul class="messages">
-                {% for message in messages %}
-                  <li>{{ message }}</li>
-                {% endfor %}
-              </ul>
+        </div>
+
+        <!-- Akce uživatelského účtu -->
+        <div class="account-div bg-color full-width-div">
+            {% if request.user.is_authenticated %}
+                <div>Přihlášený uživatel: <a href="{% url 'overview' %}">{{ user.username }}</a></div>
+                <div><a href="{% url 'logout_user' %}">Odhlásit</a></div>
+            {% else %}
+                <div><a href="{% url 'login_user' %}">Přihlášení včelaře.</a></div>
+                <div><a href="{% url 'signup' %}">Registrace nového včelaře.</a></div>
             {% endif %}
+        </div>
 
-                {% if request.user.is_authenticated %}
-                    <div><a href="{% url 'overview' %}">Přihlášený uživatel: {{ user.username }}</a></div>
-                    <div><a href="{% url 'logout_user' %}">Odhlásit</a></div>
-                {% else %}
-                    <div><a href="{% url 'login_user' %}">Přihlášení včelaře.</a></div>
-                    <div><a href="{% url 'signup' %}">Registrace nového včelaře.</a></div>
-                {% endif %}
+        <!-- Systémové zprávy o akcích a chybách -->
+        <div class="messages">
+            {% for message in messages %}
+                <div>{{ message }}</div>
+            {% endfor %}
+        </div>
 
+        <!-- Prostor pro zobrazovaný obsah -->
+        <div class="container">
             {% block content %}
             {% endblock %}
+        </div>
+        <div class="full-width-div bottom-div">
+            Oldřich Daněk © 2023
         </div>
     </body>
 </html>

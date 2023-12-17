@@ -1,22 +1,29 @@
 <!-- mothers_table.html -->
 {% load custom_filters %}
-{% if mother.active == False %}
-    <div><a href="{% url 'erase_mother' mother.id %}"
-        onclick="return confirmDelete(1, 'Úplné odstranění záznamů o zrušené mace může mít vliv na sledování rodokmenů.')">
-        Odstranit záznamy o zrušené matce.
-    </a></div>
-{% else %}
-    <div><a href="{% url 'remove_mother' mother.id %}"
-        onclick="return confirmDelete(1, 'Zrušená matka již nebude dostupná. Pokud ji chcete dále používat, přemístěte ji do jiného včelstva.')">
-        Zrušit matku.
-    </a></div>
-    <form method="post" action="{% url 'move_mother' mother.id %}">
-        {% csrf_token %}
-        <label for="id_new_hive">Vyberte nové včelstvo:</label>
-        {{ form.new_hive }}
-        <button type="submit">Přemístit</button>
-    </form>
-{% endif %}
+
+<div class="mother-description">
+    <a href="{% url 'edit_mother' mother.id %}">Upravit údaje o matce</a>
+    {% if mother.active == False %}
+        <a href="{% url 'erase_mother' mother.id %}"
+            onclick="return confirmDelete(1, 'Úplné odstranění záznamů o zrušené mace může mít vliv na sledování rodokmenů.')">
+            Odstranit záznamy o zrušené matce.
+        </a>
+    {% else %}
+        <a href="{% url 'remove_mother' mother.id %}"
+            onclick="return confirmDelete(1, 'Zrušená matka již nebude dostupná. Pokud ji chcete dále používat, přemístěte ji do jiného včelstva.')">
+            Zrušit matku.
+        </a>
+        <div>
+            <form method="post" action="{% url 'move_mother' mother.id %}">
+                {% csrf_token %}
+                <label for="id_new_hive">Vyberte nové včelstvo:</label>
+                {{ form.new_hive }}
+                <button type="submit">Přemístit</button>
+            </form>
+        </div>
+    {% endif %}
+</div>
+
 <table class="table basic-table">
     <tbody>
         <tr>
@@ -52,32 +59,33 @@
             <td>Mateřská linie</td>
             <td>{{ mother.female_line }}</td>
         </tr>
-            <tr>
+        <tr>
             <td>Komentář</td>
             <td>{{ mother.comment }}</td>
         </tr>
+        <tr>
+            <td>Předci:</td>
+            <td>
+                {% for ancestor in ancestors %}
+                    <a href="{% url 'mothers' ancestor.id %}">{{ ancestor.mark }}({{ ancestor.year }})</a>
+                {% endfor %}
+            </td>
+        </tr>
+        <tr>
+            <td>Potomci:</td>
+            <td>
+                {% for descendant in descendants %}
+                    <a href="{% url 'mothers' descendant.id %}">{{ descendant.mark }}({{ descendant.year }})</a>
+                {% endfor %}
+            </td>
+        </tr>
+        <tr>
+            <td>Sestry:</td>
+            <td>
+                {% for sister in sisters %}
+                    <a href="{% url 'mothers' sister.id %}">{{ sister.mark }}({{ sister.year }})</a>
+                {% endfor %}
+            </td>
+        </tr>
     </tbody>
 </table>
-<a href="{% url 'edit_mother' mother.id %}">Upravit údaje o matce</a><br><br>
-
-Předci:
-<div>
-    {% for ancestor in ancestors %}
-    <a href="{% url 'mothers' ancestor.id %}">{{ ancestor.mark }}({{ ancestor.year }})</a>
-    {% endfor %}
-</div>
-
-
-Potomci:
-<div>
-    {% for descendant in descendants %}
-    <a href="{% url 'mothers' descendant.id %}">{{ descendant.mark }}({{ descendant.year }})</a>
-    {% endfor %}
-</div>
-
-Sestry:
-<div>
-    {% for sister in sisters %}
-    <a href="{% url 'mothers' sister.id %}">{{ sister.mark }}({{ sister.year }})</a>
-    {% endfor %}
-</div>

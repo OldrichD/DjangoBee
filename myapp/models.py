@@ -51,6 +51,31 @@ class Hives(models.Model):
     def __str__(self):
         return str(self.number)
 
+    def last_honey_yield(self):
+        return self.visits.filter(honey_yield__isnull=False, active=True).order_by('-date').first()
+
+    def last_medication_application(self):
+        return (
+            self.visits
+            .filter(medication_application__isnull=False, active=True)
+            .exclude(medication_application='')
+            .order_by('-date')
+            .first()
+        )
+
+    def last_mite_drop(self):
+        return self.visits.filter(mite_drop__isnull=False, active=True).order_by('-date').first()
+
+    def last_disease(self):
+        return self.visits\
+            .filter(disease__isnull=False, active=True) \
+            .exclude(disease='') \
+            .order_by('-date') \
+            .first()
+
+    def last_comment(self):
+        return self.visits.filter(comment__isnull=False, active=True).exclude(comment='').order_by('-date').first()
+
 
 class Mothers(models.Model):
     hive = models.ForeignKey(Hives, on_delete=models.SET_NULL, null=True, related_name='mothers')
@@ -83,14 +108,15 @@ class Visits(models.Model):
     date = models.DateField()
     inspection_type = models.CharField(max_length=255)
     condition = models.IntegerField(null=True, blank=True)
-    hive_body_size = models.IntegerField(null=True, blank=True)
-    honey_supers_size = models.IntegerField(null=True, blank=True)
+    hive_body_size = models.IntegerField(null=False, blank=True)
+    honey_supers_size = models.IntegerField(null=False, blank=True)
     honey_yield = models.FloatField(null=True, blank=True)
     medication_application = models.CharField(max_length=255, null=True, blank=True)
     disease = models.CharField(max_length=255, null=True, blank=True)
     mite_drop = models.IntegerField(null=True, blank=True)
     performed_tasks = models.ManyToManyField(Tasks, blank=True)
     active = models.BooleanField(default=True)
+    comment = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return f"{self.date}"

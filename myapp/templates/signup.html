@@ -1,11 +1,12 @@
 {% extends "home.html" %}
 
 {% block content %}
-
-  <h2>Registrace</h2>
+<div style="text-align: left; margin-left: auto; margin-right: auto;">
+  <h2>Registrace:</h2>
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Registrovat se</button>
   </form>
+</div>
 {% endblock %}

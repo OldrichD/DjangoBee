@@ -1,10 +1,11 @@
 <!-- hives_places_table.html -->
 {% load custom_filters %}
-
 <table class="table basic-table">
     <thead>
         <tr>
-            <th>Název<br>(lokace)</th>
+            <th>Název<br>
+                <span style="font-weight: normal">(lokace)</span>
+            </th>
             <th>Poznámka</th>
             <th>Včelstev<br>/ matek</th>
             <th>Typ<br>stanoviště</th>
@@ -14,15 +15,18 @@
             <th>Poslední  <br> prohlídka</th>
             <th>Poslední provedený úkon</th>
             <th>Léčivo</th>
-            <th></th>
-            <th></th>
-            <th></th>
+            <th colspan="3"><a href="{% url 'add_hives_place' %}">Založit nové stanoviště.</a></th>
         </tr>
     </thead>
     <tbody>
         {% for hives_place in hives_places %}
             <tr>
-                <th scope="row">{{ hives_place.name }}<br>({{ hives_place.location }})</th>
+                <th scope="row">{{ hives_place.name }}
+                    {% if hives_place.location %}
+                        <br>
+                        <span style="font-weight: normal">({{ hives_place.location }})</span>
+                    {% endif %}
+                </th>
                 <td>{{ hives_place.comment }}</td>
                 <td>{{ hives_places_dict|get_name:hives_place.name }}
                     /

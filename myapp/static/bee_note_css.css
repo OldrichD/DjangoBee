@@ -1,12 +1,18 @@
 body {
-    background-color: #ffc107;
+    background-color: #FED454;
     margin: 0;
     padding: 0;
 }
 
+form {
+    display: inline-block;
+}
+
+
 .container {
     padding-right: 15px;
     padding-left: 15px;
+    padding-bottom: 30px;
     margin-right: auto;
     margin-left: auto;
     box-sizing: border-box;
@@ -14,9 +20,9 @@ body {
 
 .basic-table {
     background-color: #ffc107;
-    border-spacing: 0;
-    border-collapse: separate;
-    border: 2px solid #dee2e6;
+    border-collapse: collapse;
+    border: 2px solid #B68904;
+    margin: auto;
 }
 
 .basic-table th {
@@ -25,18 +31,67 @@ body {
 
 .basic-table th, .basic-table td {
     text-align: center;
-    border: 1px solid #dee2e6;
-    padding: 5px;
+    border: 1px solid #B68904;
+    padding: 2px;
 }
 
 .basic-table td:first-child {
     font-weight: bold;
 }
 
-.bg-color {
+.basic-table tbody tr:nth-child(odd) {
     background-color: #ffc107;
+}
+
+.basic-table tbody tr:nth-child(even) {
+    background-color: #ffcd38;
+}
+
+.basic-table thead tr {
+    background-color: #e5ad06;
 }
 
 .left-aligned-column {
     text-align: left !important;
+}
+
+.full-width-div {
+    background-color: #B68904;
+    padding-right: 15px;
+    padding-left: 15px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.account-div {
+    text-align: right;
+}
+
+.bg-color {
+    background-color: #ffc107;
+}
+
+.bottom-div {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    background-color: #B68904;
+    text-align: right;
+}
+
+.small-text {
+      font-size: 60%;
+    }
+
+.hive-description {
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.mother-description {
+    margin: 10px;
+    text-align: center;
 }

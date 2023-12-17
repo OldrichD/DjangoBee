@@ -3,7 +3,7 @@
 {% extends "home.html" %}
 
 {% block content %}
-<table>
+<table class="hive-description">
     <tbody>
         <tr>
             <td>Včelstvo č.:</td>
@@ -25,8 +25,11 @@
         </tr>
     </tbody>
 </table>
-
+{% if visit_instance %}
+    <h2>Editace prohlídky:</h2>
+{% else %}
   <h2>Zápis prohlídky:</h2>
+{% endif %}
   <form method="post" id="add-visit-form">
     {% csrf_token %}
     {{ form.as_p }}

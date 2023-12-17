@@ -1,8 +1,7 @@
 <!-- visits_table.html -->
 
 {% load custom_filters %}
-
-<table>
+<table class="hive-description">
     <tbody>
         <tr>
             <td>Včelstvo č.:</td>
@@ -38,15 +37,11 @@
     </tbody>
 </table>
 
-<div>
-    <a href="{% url 'add_visit' user_hive.id %}">Zapsat prohlídku</a>
-</div>
-
 <table class="table basic-table">
     <thead>
         <tr>
             <th>Datum</th>
-            <th>Typ prohlídky</th>
+            <th>Typ</th>
             <th>Provedené úkony</th>
             <th>Kondice</th>
             <th>Velikost plodiště</th>
@@ -55,8 +50,8 @@
             <th>Aplikace léčiva</th>
             <th>Onemocnění</th>
             <th>Spad</th>
-            <th></th>
-            <th></th>
+            <th>Poznámka</th>
+            <th><a href="{% url 'add_visit' user_hive.id %}">Zapsat prohlídku</a></th>
         </tr>
     </thead>
     <tbody>
@@ -66,20 +61,21 @@
                 <td>{{ visit.inspection_type }}</td>
                 <td>
                     {% for task in visit.performed_tasks.all %}
-                        <p>{{ task.name }}</p>
+                        <div>{{ task.name }}</div>
                     {% endfor %}
                 </td>
                 <td>{% if visit.condition is not None %}{{ visit.condition }}{% endif %}</td>
                 <td>{% if visit.hive_body_size is not None %}{{ visit.hive_body_size }}{% endif %}</td>
                 <td>{% if visit.honey_supers_size is not None %}{{ visit.honey_supers_size }}{% endif %}</td>
-                <td>{% if visit.honey_yield is not None %}{{ visit.honey_yield }}{% endif %}</td>
+                <td>{% if visit.honey_yield is not None %}{{ visit.honey_yield|floatformat:1 }}{% endif %}</td>
                 <td>{% if visit.medication_application is not None %}{{ visit.medication_application }}{% endif %}</td>
                 <td>{% if visit.disease is not None %}{{ visit.disease }}{% endif %}</td>
                 <td>{% if visit.mite_drop is not None %}{{ visit.mite_drop }}{% endif %}</td>
                 <td>
-                    <div><a href="{% url 'remove_visit' visit.id %}">Smazat prohlídku</a></div>
+                    {% if visit.comment is not None %}{{ visit.comment }}{% endif %}
                 </td>
                 <td>
+                    <div><a href="{% url 'remove_visit' visit.id %}">Smazat prohlídku</a></div>
                     <div><a href="{% url 'edit_visit' visit.id %}">Upravit prohlídku</a></div>
                 </td>
             </tr>

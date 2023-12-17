@@ -26,6 +26,11 @@ class AddHivesPlace(forms.ModelForm):
         model = HivesPlaces
         fields = ['name', 'type', 'location', 'comment']
 
+    name = forms.CharField(label='Název:', required=True)
+    type = forms.CharField(label='Typ:', required=True)
+    location = forms.CharField(label='Lokace:', required=False)
+    comment = forms.CharField(label='Komentář:', required=False)
+
     def clean_name(self):
         beekeeper = self.cleaned_data.get('beekeeper')
         name = self.cleaned_data.get('name')
@@ -71,7 +76,6 @@ class AddMother(forms.ModelForm):
 class AddVisit(forms.ModelForm):
 
     CONDITION_CHOICES = [
-        (None, '-'),
         ('0', '0'),
         ('1', '1'),
         ('2', '2'),
@@ -93,18 +97,17 @@ class AddVisit(forms.ModelForm):
         label='Síla včelstva:',
         choices=CONDITION_CHOICES,
         coerce=int,
-        empty_value=None,
-        required=False
+        required=True
     )
     hive_body_size = forms.IntegerField(
         label='Velikost plodiště:',
         validators=[MinValueValidator(0)],
-        required=False
+        required=True
     )
     honey_supers_size = forms.IntegerField(
         label='Velikost medníku:',
         validators=[MinValueValidator(0)],
-        required=False
+        required=True
     )
     honey_yield = forms.DecimalField(
         label='Výnos medu (kg):',
@@ -170,12 +173,12 @@ class EditVisit(forms.ModelForm):
     hive_body_size = forms.IntegerField(
         label='Velikost plodiště:',
         validators=[MinValueValidator(0)],
-        required=False
+        required=True
     )
     honey_supers_size = forms.IntegerField(
         label='Velikost medníku:',
         validators=[MinValueValidator(0)],
-        required=False
+        required=True
     )
     honey_yield = forms.DecimalField(
         label='Výnos medu (kg):',
@@ -197,6 +200,11 @@ class EditVisit(forms.ModelForm):
         required=False
     )
 
+    comment = forms.CharField(
+        required=False,
+        label='Poznámka:'
+    )
+
     performed_tasks = forms.ModelMultipleChoiceField(
         queryset=Tasks.objects.all(),
         widget=forms.CheckboxSelectMultiple,
@@ -208,13 +216,18 @@ class EditVisit(forms.ModelForm):
         model = Visits
         fields = ['date', 'inspection_type', 'condition', 'hive_body_size',
                   'honey_supers_size', 'honey_yield', 'medication_application',
-                  'disease', 'mite_drop', 'performed_tasks']
+                  'disease', 'mite_drop', 'comment', 'performed_tasks']
 
 
 class EditHivesPlace(forms.ModelForm):
     class Meta:
         model = HivesPlaces
         fields = ['name', 'type', 'location', 'comment']
+
+    name = forms.CharField(label='Název:', required=True)
+    type = forms.CharField(label='Typ:', required=True)
+    location = forms.CharField(label='Lokace:', required=False)
+    comment = forms.CharField(label='Komentář:', required=False)
 
     def clean_name(self):
         beekeeper = self.cleaned_data.get('beekeeper')

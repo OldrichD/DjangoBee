@@ -171,7 +171,7 @@ def overview(request):
         hive__place=OuterRef('pk'),
         medication_application__gt='',
         active=True
-        ).order_by('-date').values('medication_application', 'date')[:1]
+    ).order_by('-date').values('medication_application', 'date')[:1]
 
     places_with_last_medical_application = HivesPlaces.objects.filter(
         beekeeper=request.user,
@@ -188,7 +188,7 @@ def overview(request):
 
     # Varování před smazáním stanoviště s aktivními včelstvy
     warning = "Chystáte se odstranit stanoviště i se včelstvy. " \
-            "Pokud chcete včelstva zachovat, nejprve je přemístěte na jiné stanoviště."
+              "Pokud chcete včelstva zachovat, nejprve je přemístěte na jiné stanoviště."
 
     # Vykreslení šablony iverview a předání všech potřebných dat
     return render(request, 'overview.html', {
@@ -229,27 +229,69 @@ def hives_place(request, hives_place_id=None):
         last_visits = (
             Visits.objects
             .filter(hive__place__beekeeper=request.user, hive__place=hives_place_id, active=True)
-            .values('hive__id')
+            .values('hive__id', 'hive_body_size', 'honey_supers_size', 'condition')
             .annotate(last_visit=Max('date'))
         )
-        last_visits = {item['hive__id']: item['last_visit'] for item in last_visits}
+        last_visits_date = {item['hive__id']: item['last_visit'] for item in last_visits}
+        hive_size = {item['hive__id']: f"{item['hive_body_size']}+{item['honey_supers_size']}" for item in last_visits}
+        hive_condition = {item['hive__id']: item['condition'] for item in last_visits}
 
+        # Získání matky pro aktivní včelstvo
         hives_dict = {}
         mothers_dict = {}
         years_dict = {}
         for hive in hives:
-            # Získání matky pro aktivní včelstvo
             mother = (
                 Mothers.objects
                 .filter(hive=hive, active=True)
                 .first()
             )
+
             if mother:
                 hives_dict[hive.id] = mother.mark
                 mothers_dict[hive.id] = mother.id
                 years_dict[hive.id] = mother.year
             else:
                 hives_dict[hive.id] = None
+
+        # slovník poslední hodnoty medného výnosu zaznamenané při prohlídkách včelstev na stanovišti
+        last_honey_yield_dict = {
+            hive.id: {'value': hive.last_honey_yield().honey_yield if hive.last_honey_yield() else None,
+                      'date': hive.last_honey_yield().date if hive.last_honey_yield() else None}
+            for hive in hives
+        }
+
+        # slovník poslední hodnoty spadu roztočů zaznamenané při prohlídkách včelstev na stanovišti
+        last_mite_drop_dict = {
+            hive.id: {'value': hive.last_mite_drop().mite_drop if hive.last_mite_drop() else None,
+                      'date': hive.last_mite_drop().date if hive.last_mite_drop() else None}
+            for hive in hives
+        }
+
+        # slovník poslední aplikace léčiva při prohlídkách včelstev na stanovišti
+        last_medication_application_dict = {}
+        for hive in hives:
+            last_medication_application_dict[hive.id] = {
+                'value': (
+                    hive.last_medication_application().medication_application
+                    if hive.last_medication_application() else None
+                ),
+                'date': hive.last_medication_application().date if hive.last_medication_application() else None
+            }
+
+        # slovník poslední příznaky nemoci při prohlídkách včelstev na stanovišti
+        last_disease_dict = {
+            hive.id: {'value': hive.last_disease().disease if hive.last_disease() else None,
+                      'date': hive.last_disease().date if hive.last_disease() else None}
+            for hive in hives
+        }
+
+        # slovník poslední komentář při prohlídkách včelstev na stanovišti
+        last_comment_dict = {
+            hive.id: {'value': hive.last_comment().comment if hive.last_comment() else None,
+                      'date': hive.last_comment().date if hive.last_comment() else None}
+            for hive in hives
+        }
 
         form = ChangeHivesPlace(user=request.user, hives_place_id=hives_place_id)
         return render(request, 'overview.html', {
@@ -262,6 +304,14 @@ def hives_place(request, hives_place_id=None):
             'hives_place_id': hives_place_id,
             'hives_place_name': user_hives_place.name,
             'last_visits': last_visits,
+            'last_visits_date': last_visits_date,
+            'hive_size': hive_size,
+            'hive_condition': hive_condition,
+            'last_honey_yield_dict': last_honey_yield_dict,
+            'last_mite_drop_dict': last_mite_drop_dict,
+            'last_medication_application_dict': last_medication_application_dict,
+            'last_disease_dict': last_disease_dict,
+            'last_comment_dict': last_comment_dict,
             'form': form
         })
     except Http404:
@@ -326,7 +376,7 @@ def edit_hives_place(request, hives_place_id):
         return redirect('overview')
 
     if request.method == 'POST':
-        form = EditHivesPlace(request.POST,  instance=user_hives_place)
+        form = EditHivesPlace(request.POST, instance=user_hives_place)
         if form.is_valid():
             form.save()
             messages.success(request, "Editace stanoviště proběhla úspěšně.")
@@ -417,7 +467,7 @@ def move_hive(request, old_hives_place):
                     messages.success(request, f'Včelstva ({", ".join(map(str, selected_hive_ids))}'
                                               f') byla přemístěna ze stanoviště {old_hives_place.name}'
                                               f' na stanoviště {new_hives_place.name}'
-                                              f' a očíslována({", " .join(map(str, new_numbers))}).'
+                                              f' a očíslována({", ".join(map(str, new_numbers))}).'
                                      )
                     return redirect('hives_place', new_hives_place.id)
             else:
@@ -453,7 +503,7 @@ def mothers(request, mother_id=None):
             'descendants': descendants,
             'sisters': sisters,
             'form': form
-    })
+        })
 
     except Http404:
         messages.error(request, "Záznamy o matce pro přihlášeného uživatele nejsou k dispozici.")
@@ -511,7 +561,7 @@ def move_mother(request, mother_id=None):
                         mother.save()
 
                         messages.success(request, f"Matka {mother.mark} byla úspěšně přemístěna do včelstva č."
-                                              f"{new_hive.number} na stanovišti {new_hive.place.name}.")
+                                                  f"{new_hive.number} na stanovišti {new_hive.place.name}.")
                     return redirect('hives_place', new_hive.place_id)
             else:
                 messages.error(request, form.errors)
@@ -580,7 +630,7 @@ def edit_mother(request, mother_id=None):
 def visits(request, hive_id=None):
     try:
         user_hive = get_object_or_404(Hives, id=hive_id, place__beekeeper=request.user)
-        user_visits = Visits.objects.filter(hive=user_hive, active=True)
+        user_visits = Visits.objects.filter(hive=user_hive, active=True).order_by('-date')
         user_hive.mother = Mothers.objects.filter(hive=user_hive, active=True)
 
         return render(request, 'overview.html', {
