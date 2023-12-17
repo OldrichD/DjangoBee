@@ -1,11 +1,16 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.auth.models import UserManager
 
-# Create your models here.
+
+class BeekeepersManager(UserManager):
+    pass
 
 
 class Beekeepers(User):
     beekeeper_id = models.IntegerField(unique=True)
+
+    objects = BeekeepersManager()
 
     def __str__(self):
         return self.username
